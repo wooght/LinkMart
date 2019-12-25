@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load common_tags %}
+{% block title %}领克便利数据中心{% endblock %}
+{% block header %}
+    {%if stock_type == 1%}
+    进货单
+    {%else%}
+    补货单
+    {%endif%}
+    <div style="float:right; width:50%; margin-right:0px; text-align:right; font-size:12px;">
+    <form method="get" action="/stock_list/store_id">
+        {% if user.admin_type == 1 %} 选择门店：
+        <select onchange="gotolaction('/stock_list/'+{{stock_type}}+'/'+this.value)" name="store_id">
+            {% all_stores as stores %}
+            {% for item in stores %}
+            <option {% if item.id == store_id %} selected="selected" {% endif %}value="{{item.id}}">{{item.name}}</option>
+            {% endfor %}
+        </select>
+        {%endif%}
+    </form>
+</div>
+{% endblock %}
+
+{% block content_body %}
+<script>
+
+</script>
+<section class="content container-fluid" style="background-color:#fff;">
+    <table class="table table-hover">
+        <tr>
+            <th>名称</th>
+            <th>日均</th>
+            <th>月均</th>
+            <th>近30日</th>
+            <th>操作</th>
+        </tr>
+        {% for item in goods_list %}
+        <tr>
+            <td><a href="/goods_form/{{item.good.goods_id.id}}">{{item.goods_name}}<br /> {{item.goods_code}}</a></td>
+            <td><span class="badge bg-blue">{{item.day_average}}</span></td>
+            <td>{% widthratio item.day_average 1 30 as day%}{{day|floatformat:2}}</td>
+            <td>{{item.totle_num_30}}</td>
+            <td><span class="label label-success"><a style="color:#fff;" onclick="are_ok('{{item.goods_name}}','/stock_state/{{item.good.id}}/{{stock_type}}')" '>确认操作</a></span><br /></td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load common_tags %}
+{% block title %}领克便利数据中心{% endblock %}
+{% block header %}
+    商品保质单
+    <div style="float:right; width:50%; margin-right:0px; text-align:right; font-size:12px;">
+    <form method="get" action="/stock_list/store_id">
+        {% if user.admin_type == 1 %} 选择门店：
+        <select onchange="gotolaction('/quality_list/'+this.value)" name="store_id">
+            {% all_stores as stores %}
+            {% for item in stores %}
+            <option {% if item.id == store_id %} selected="selected" {% endif %}value="{{item.id}}">{{item.name}}</option>
+            {% endfor %}
+        </select>
+        {%endif%}
+    </form>
+</div>
+{% endblock %}
+
+{% block content_body %}
+<script>
+
+</script>
+<section class="content container-fluid" style="background-color:#fff;">
+    <table class="table table-hover">
+        <tr>
+            <th>名称</th>
+            <th>添加日期</th>
+            <th>当时库存</th>
+            <th>添加后销售</th>
+            <th>操作</th>
+        </tr>
+        {% for item in goods_list %}
+        <tr>
+            <td><a href="/goods_form/{{item.goods_id.id}}">{{item.goods_name}}<br /> {{item.goods_code}}</a></td>
+            <td><span class="badge bg-blue">{{item.add_date}}</span><br />剩余：{{item.last_day}}天</td>
+            <td>{{item.stock_nums}}</td>
+            <td>{{item.totle_num_30}}</td>
+            <td><span class="label label-success"><a style="color:#fff;" onclick="are_ok('{{item.goods_name}}','/quality_state/{{item.id}}')" '>处理完成</a></span><br /></td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

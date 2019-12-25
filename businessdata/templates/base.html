@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{% block title %}Title{% endblock %}</title>
+  <link rel="stylesheet" href="/static/adminlte/bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/adminlte/bower_components/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/static/adminlte/bower_components/Ionicons/css/ionicons.min.css">
+  <link rel="stylesheet" href="/static/adminlte/dist/css/AdminLTE.min.css">
+  <link rel="stylesheet" href="/static/adminlte/dist/css/skins/skin-blue.min.css">
+  <link rel="stylesheet" href="/static/css/wooght.css">
+  <link href="/static/css/wooght.css" rel="stylesheet" type="text/css">
+  <!-- Google Font -->
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+  <script src="/static/js/_ajax.js"></script>
+  <script src="/static/js/base.js"></script>
+  <!-- jQuery 3 -->
+  <script src="/static/adminlte/bower_components/jquery/dist/jquery.min.js"></script>
+  <meta name="viewport" content="width=device-width">
+  <meta name="viewport" content="width=device-width,initial-scale=0.8">
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<!--<script>document.write("屏幕分辨率是"+window.screen.width+"*"+window.screen.height);  </script>-->
+
+<div class="wrapper">
+
+  <!--头部状态栏-->
+  {% include 'header.html' %}
+  <!--头部状态结束-->
+
+  <!--左边菜单栏-->
+  {% include 'nav.html' %}
+  <!--左边菜单栏节结束-->
+
+  <!--主题内容-->
+  <div class="content-wrapper" style="background-color:#eee;">
+    <section class="content-header">
+      <h1>
+        {% block header %}
+        header
+        {% endblock %}
+      </h1>
+      <ol class="breadcrumb">
+        <script type="text/javascript">
+         id_input = document.getElementById('codeid');
+         function go(){
+           var codeid = id_input.value;
+           window.location.href="/companyone/id/"+codeid;
+         }
+        </script>
+      </ol>
+    </section>
+    <!-- Main content -->
+
+      <!--主题内容-->
+      {% block content_body %}
+      !!!!
+      {% endblock %}
+    <!-- /.content -->
+  </div>
+  <!--主题内容结束-->
+
+  <!--页脚-->
+  {% include 'boot.html' %}
+  <!--页脚结束-->
+</div>
+
+<!-- REQUIRED JS SCRIPTS -->
+<!-- Bootstrap 3.3.7 -->
+<script src="/static/adminlte/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/adminlte/dist/js/adminlte.min.js"></script>
+
+<!-- Optionally, you can add Slimscroll and FastClick plugins.
+     Both of these plugins are recommended to enhance the
+     user experience. -->
+</body>
+</html>

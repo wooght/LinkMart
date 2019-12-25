@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}领克便利数据中心{% endblock %}
+{% block header %}
+    数据文件上传
+    <small>数据文件上传</small>
+{% endblock %}
+
+{% block content_body %}
+<section class="content container-fluid" style="background-color:#fff;">
+    {{error}}
+  <div class="box-body table-responsive no-padding">
+      <div class="box box-primary">
+          {% if 'no' not in info %}
+          <script>
+            alert('{{info}}')
+          </script>
+          {% endif %}
+          {{true_content}}
+          {{false_content}}
+            <form role="form" action="/upload_xls" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+              <div class="box-body">
+                <div class="form-group">
+                  <label for="store_select">选择门店</label>
+                    <select name="store_id">
+                        {% for item in stores %}
+                        <option value="{{item.id}}">{{item.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                  <div class="form-group">
+                    <label for="store_select">选择门店</label>
+                        <select name="file_type">
+                            {% for id, item in file_type.items %}
+                            <option value="{{id}}">{{item}}</option>
+                            {% endfor %}
+                        </select>
+                  </div>
+                  <div class="form-group">
+                      <label for="exampleInputFile">选择文件</label>
+                      <input name="xls" type="file" id="exampleInputFile">
+                      <p class="help-block"></p>
+                  </div>
+              </div>
+              <div class="box-footer">
+                <button type="submit" class="btn btn-primary">保存</button>
+              </div>
+            </form>
+          </div>
+  </div>
+</section>
+{% endblock %}

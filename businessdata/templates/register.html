@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}领克便利数据中心{% endblock %}
+{% block header %}
+    数据概括
+    <small>统计数据概括</small>
+{% endblock %}
+
+{% block content_body %}
+<section style="margin:auto; padding-top:20px;" class="content container-fluid">
+
+  <div class="register-box-body">
+    <p class="login-box-msg">添加用户</p>
+    {% if messages %}
+    {% for message in messages %}
+    <div class="{{message.tags}}">{{message}}</div>
+    {% endfor %}
+    {% endif %}
+    <form action="/register" method="post">
+        {% csrf_token %}  <!--csrf验证机制-->
+      <div class="form-group has-feedback">
+        <input name="username" type="text" class="form-control" placeholder="Full name">
+        <span class="glyphicon glyphicon-user form-control-feedback"></span>
+      </div>
+      <div class="form-group has-feedback">
+        <input name="email" type="email" class="form-control" placeholder="Email">
+        <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+      </div>
+      <div class="form-group has-feedback">
+        <input name="password" type="password" class="form-control" placeholder="Password">
+        <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+      </div>
+      <div class="form-group has-feedback">
+        <input name="password" type="password" class="form-control" placeholder="Retype password">
+        <span class="glyphicon glyphicon-log-in form-control-feedback"></span>
+      </div>
+      <div class="form-group has-feedback">
+        <input name="phone" class="form-control" placeholder="联系电话">
+      </div>
+      <div class="row">
+        <div class="col-xs-8">
+          <div class="checkbox icheck">
+            <label>
+              <select name="store_id">
+                <option value="">选择门店</option>
+                {% for i in stores %}
+                <option value="{{i.id}}">{{i.name}}</option>
+                {% endfor %}
+              </select></label>
+              -
+              <select name="admin_type">
+                <option value="">选择类别</option>
+                <option value="1">管理员</option>
+                <option value="2">员工</option>
+              </select>
+
+          </div>
+        </div>
+        <!-- /.col -->
+        <div class="col-xs-4">
+          <button type="submit" class="btn btn-primary btn-block btn-flat">注册</button>
+        </div>
+        <!-- /.col -->
+      </div>
+    </form>
+  </div>
+  <!-- /.form-box -->
+</div>
+<!-- /.register-box -->
+<img id="img_aaa" src="123">
+<!-- jQuery 3 -->
+<script src="static/adminlte/bower_components/jquery/dist/jquery.min.js"></script>
+<!-- Bootstrap 3.3.7 -->
+<script src="static/adminlte/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<!-- iCheck -->
+<script src="static/adminlte/plugins/iCheck/icheck.min.js"></script>
+<script type="text/javascript">
+function get_code(){
+  a = document.getElementById('img_code');
+  $.get('/verify_code',function(data){
+    //a.src = '/uploads/verify_code/'+data;
+    $("#img_code").attr('src','/uploads/verify_code/' + data);
+  });
+  }
+  get_code();
+  $(function () {
+    $('input').iCheck({
+      checkboxClass: 'icheckbox_square-blue',
+      radioClass: 'iradio_square-blue',
+      increaseArea: '20%' // optional
+    });
+  });
+</script>
+</section>
+{% endblock %}

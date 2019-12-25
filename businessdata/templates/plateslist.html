@@ -1,0 +1,72 @@
+{% extends 'base.html'%}
+{% load common_tags %}
+{% block title %} 板块选股 {% endblock %}
+{% block header %}
+    板块选股
+{% endblock %}
+
+{% block content_body %}
+<section class="content container-fluid" style="background-color:#fff;">
+  <div class="box-body table-responsive no-padding">
+  {% for plate in plates %}
+  <a href="/plateslist/{{plate.plateid}}/1"><span
+    {% if plate.plateid == id %}
+    class="badge bg-red"
+    {% else %}
+    class="badge bg-blue"
+    {% endif %}
+    >{{plate.name}}{{plate.plateid}}</span></a>
+  {% endfor %}
+  <hr />
+  <table class="table table-hover">
+    <tr>
+      <th>代码</th>
+      <th>名称</th>
+      <th>地域</th>
+      <th>板块</th>
+      <th>今开</th>
+      <th>当前</th>
+      <th>昨收</th>
+      <th>今高</th>
+      <th>今底</th>
+    </tr>
+    {% for item in companys %}
+    <tr>
+      <td><a href=""><span class="badge bg-red">{{item.codeid}}</span></a></td>
+      <td><span class="badge bg-blue">{{item.name}}</span></td>
+      <td>{{item.region_id}}</td>
+      <td>{% select_plate item.plate_id %}</td>
+      <td id='kai{{item.codeid}}'></td>
+      <td id='now{{item.codeid}}'></td>
+      <td id='before{{item.codeid}}'></td>
+      <td id='gao{{item.codeid}}'></td>
+      <td id='di{{item.codeid}}'></td>
+    </tr>
+    {% endfor %}
+  </table>
+    {% autoescape off %}
+  {{fy}}
+    {% endautoescape %}
+</section>
+<script id="ifload" type="text/javascript" src="http://hq.sinajs.cn/list=
+{% for item in codelist %}
+{{item.shsz_code}},
+{% endfor %}
+" charset="gb2312"></script>
+<script type="text/javascript">
+{% for item in codelist %}
+var a = hq_str_{{item.shsz_code}}.split(',');
+__('kai{{item.codeid}}').innerHTML = a[1]
+__('now{{item.codeid}}').innerHTML = a[3]
+__('before{{item.codeid}}').innerHTML = a[2]
+__('gao{{item.codeid}}').innerHTML = a[4]
+__('di{{item.codeid}}').innerHTML = a[5]
+{% endfor %}
+</script>
+<!-- <script type="text/javascript">
+_ajax.get("","http://hq.sinajs.cn/list=sh601006",function(date){
+  alert('aa')
+});
+
+</script> -->
+{% endblock %}
