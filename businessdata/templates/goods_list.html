@@ -6,21 +6,24 @@
 
 {% block content_body %}
 <section class="content container-fluid" style="background-color:#fff;">
+    {%for item in classify_data%}
+    {{item.classify}}
+    {%endfor%}
     <table class="table table-hover">
         <tr>
-            <th>ID</th>
             <th>条码</th>
             <th>名称</th>
-            <th>保质期</th>
+            <th>分类</th>
+            <th>库存</th>
             <th>门店</th>
             <th>编辑</th>
         </tr>
         {% for item in goods_list %}
         <tr>
-            <td>{{item.id}}</td>
             <td><a href="/goods_form/{{item.id}}"><span class="badge bg-red">{{item.bar_code}}</span></a></td>
             <td><span class="badge bg-blue">{{item.name}}</span></td>
-            <td>{{item.qgp}}</td>
+            <td>{{item.classify}}</td>
+            <td>{{item.stock_nums}}</td>
             <td>{{item.store_id}}</td>
             <td><span class="label label-success"><a style="color:#fff;" href='/goods_form/{{item.id}}'>查看</a></span></td>
         </tr>

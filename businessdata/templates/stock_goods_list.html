@@ -36,7 +36,7 @@
         </tr>
         {% for item in goods_list %}
         <tr>
-            <td><a href="/goods_form/{{item.good.goods_id.id}}">{{item.goods_name}}<br /> {{item.goods_code}}</a></td>
+            <td><a href="/goods_form/{{item.good.goods_id.id}}">{{item.goods_name}}<br /> {{item.good.goods_code}}</a></td>
             <td><span class="badge bg-blue">{{item.day_average}}</span></td>
             <td>{% widthratio item.day_average 1 30 as day%}{{day|floatformat:2}}</td>
             <td>{{item.totle_num_30}}</td>

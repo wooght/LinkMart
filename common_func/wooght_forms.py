@@ -57,5 +57,5 @@ def one_day_date(one=0):
 form_time = {
     'stock': 120,
     'quality': 90,
-    'forms': 180,
+    'forms': 360,
 }

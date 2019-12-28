@@ -62,11 +62,16 @@ def index(request):
 
 
 # 商品列表页面展示
-def goods_list_page(request):
+def goods_list_page(request, classify='默认分类'):
+    classify_data = object
     if request.method == 'GET':
         goods_code = request.GET.get('goods_code')
+
         if not goods_code:
-            all_data = goods_list.objects.filter(store_id=request.session['store_id'])
+            # 查询类别 在没有搜索时 显示类别
+            classify_data = goods_list.objects.values('classify')
+            # classify_data.group_by('classify')
+            all_data = goods_list.objects.filter(store_id=request.session['store_id'], classify=classify)
         else:
             all_data = goods_list.objects.filter(bar_code__contains=goods_code,
                                                  store_id=request.session['store_id'])  # # 字段名__contains 模糊查询 注意中间双划线
@@ -152,14 +157,21 @@ def save_goods(store_id, data_list):
         try:
             is_exists = goods_list.objects.filter(name=goods_name, store_id=store_id)
             if is_exists:
+                goods = is_exists[0]
+                goods.stock_nums = items[7]
+                goods.classify = items[3]
+                goods.save()
                 return_content['false'].append(goods_name)
             else:
                 bar_code = items[0]  # 条码
                 qgp = items[8]  # 保质期
+                classify = items[3] # 分类
+                stock_nums = items[7]
                 if not qgp:
                     qgp = 0
                 id = store_list.objects.filter(id=store_id)[0]
-                to_save = goods_list(name=goods_name, bar_code=bar_code, qgp=qgp, store_id=id)
+                to_save = goods_list(name=goods_name, bar_code=bar_code, qgp=qgp, store_id=id,
+                                     stock_nums=stock_nums, classify = classify)
                 to_save.save()
                 return_content['true'].append(store_id)
         except Exception as e:
