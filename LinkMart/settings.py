@@ -136,8 +136,8 @@ STATICFILES_DIRS = (
 )
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.0/howto/static-files/
 # 映射到静态文件的URL
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 LOGIN_URL = '/login'  # 登录时 调整到的登录页面

@@ -47,7 +47,7 @@ def index(request):
     # 获取小时数据
     all_forms = order_form.objects.filter(form_money__gt=0, store_id=store_id)
     day_money = day_sales_data(all_forms)
-    print(day_money)
+    # print(day_money)
 
     # 获取一周数据
     week_money = week_sales_data(all_forms)
