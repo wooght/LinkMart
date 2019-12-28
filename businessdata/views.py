@@ -63,21 +63,25 @@ def index(request):
 
 # 商品列表页面展示
 def goods_list_page(request, classify='默认分类'):
-    classify_data = object
+    classify_keys = []
     if request.method == 'GET':
         goods_code = request.GET.get('goods_code')
-
         if not goods_code:
             # 查询类别 在没有搜索时 显示类别
             classify_data = goods_list.objects.values('classify')
-            # classify_data.group_by('classify')
+            for item in classify_data:
+                if item['classify'] not in classify_keys:
+                    classify_keys.append(item['classify'])
+            print(classify_keys)
+            if request.GET.get('classify'):
+                classify = request.GET.get('classify')
             all_data = goods_list.objects.filter(store_id=request.session['store_id'], classify=classify)
         else:
             all_data = goods_list.objects.filter(bar_code__contains=goods_code,
                                                  store_id=request.session['store_id'])  # # 字段名__contains 模糊查询 注意中间双划线
     else:
         all_data = goods_list.objects.all()
-    return render(request, 'goods_list.html', {'goods_list': all_data})
+    return render(request, 'goods_list.html', {'goods_list': all_data, 'classify_keys': classify_keys})
 
 
 # 提交文件入口

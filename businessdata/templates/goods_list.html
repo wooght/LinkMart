@@ -6,8 +6,8 @@
 
 {% block content_body %}
 <section class="content container-fluid" style="background-color:#fff;">
-    {%for item in classify_data%}
-    {{item.classify}}
+    {%for item in classify_keys%}
+    <a href="/goods_list?classify={{item}}"><span class="badge bg-blue"> {{item}}</span></a>
     {%endfor%}
     <table class="table table-hover">
         <tr>
