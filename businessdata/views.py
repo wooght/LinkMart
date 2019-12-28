@@ -364,15 +364,6 @@ def quality_list(request, store_id=0):
     return render(request, 'quality_list.html', {'store_id': store_id, 'goods_list': return_quality_list})
 
 
-# 改变保质观察状态
-def quality_state(request, id):
-    quality_good = goods_quality.objects.filter(id=id, state=1)[0]
-    # 设置为2 及已经处理
-    quality_good.state = 2
-    quality_good.save()
-    return quality_list(request, quality_good.store_id)
-
-
 # 进货列表
 @login_required  # 需要登录
 def stock_list(request, store_id=0, stock_type=1):
@@ -396,15 +387,6 @@ def stock_list(request, store_id=0, stock_type=1):
     return render(request, 'stock_goods_list.html', {'store_id': store_id,
                                                      'goods_list': return_stock_list,
                                                      'stock_type': stock_type})
-
-
-# 改变进/补货状态
-def stock_state(request, id, stock_type):
-    stock_goods = stock_width_goods.objects.filter(id=id, state=1)[0]
-    # 设置为2 及已经处理
-    stock_goods.state = 2
-    stock_goods.save()
-    return stock_list(request, store_id=stock_goods.store_id, stock_type=stock_type)
 
 
 ###

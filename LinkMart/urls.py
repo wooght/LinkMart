@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from businessdata import views as busd_view
+from businessdata import apis as api
 from login import views as login_view
 
 urlpatterns = [
@@ -31,12 +32,14 @@ urlpatterns = [
     path('stock_list', busd_view.stock_list),
     path('stock_list/<int:stock_type>', busd_view.stock_list),
     path('stock_list/<int:stock_type>/<int:store_id>', busd_view.stock_list),
-    path('stock_state/<int:id>/<int:stock_type>', busd_view.stock_state),
     path('goods_quality_add/<int:goods_id>', busd_view.goods_quality_add),
     path('goods_quality_save', busd_view.goods_quality_save),
     path('quality_list', busd_view.quality_list),
     path('quality_list/<int:store_id>', busd_view.quality_list),
-    path('quality_state/<int:id>', busd_view.quality_state),
+
+    # api
+    path('stock_state/<int:id>', api.stock_state),  # 改变进货补货状态
+    path('quality_state/<int:id>', api.quality_state),
 
     # 登录
     path('login', login_view.login),
