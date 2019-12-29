@@ -49,6 +49,7 @@
                 <li><a href="/quality_list"><i class="fa fa-circle-o">保质单</i></a></li>
             </ul>
         </li>
+        {%if user.admin_type == 1%}
         <li class="treeview">
             <a href="#">
               <i class="fa fa-pie-chart"></i>
@@ -63,6 +64,7 @@
                 <li><a href="/register"><i class="fa fa-circle-o">添加员工</i> </a> </li>
             </ul>
         </li>
+        {%endif%}
 
         {% if perms.admin %}
         {# 判断是否拥有管理员权限 #}

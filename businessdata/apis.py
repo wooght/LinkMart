@@ -217,7 +217,7 @@ def save_form(store_id, data_list):
 # 一天24小时营业数据
 def day_sales_trend(request):
     # 获取小时数据
-    all_forms = order_form.objects.filter(form_money__gt=0, store_id=request.session['store_id'], form_date__gt=one_day_date(4))  # 最近一月
+    all_forms = order_form.objects.filter(form_money__gt=0, store_id=request.session['store_id'], form_date__gt=one_day_date(31))  # 最近一月
     day_money = day_sales_data(all_forms)
     return_arr = []
     for day, value in day_money.items():
