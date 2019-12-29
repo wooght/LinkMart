@@ -52,9 +52,16 @@
         </li>
         <!--登陆情况结束-->
         <li class="dropdown messages-menu" style="display:block; width:60%; float:right; padding-right:20px;">
+            <script type="text/javascript">
+                function change_value(dou,value){
+                    if(value == '条码或名称'){
+                        dou.value = ''
+                    }
+                }
+            </script>
             <form method="get" action="/goods_list" style="display:block;">
               <div class="input-group margin" style="width:100%; margin-top:10px;">
-                <input name="goods_code" type="text" id="codeid" class="form-control">
+                <input name="goods_code" value="条码或名称" onfocus="change_value(this,this.value)" type="text" id="codeid" class="form-control">
                 <span class="input-group-btn">
                   <button type="submit" class="btn btn-info btn-flat">搜索</button>
                 </span>

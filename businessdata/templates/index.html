@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load common_tags %}
 {% block title %}领克便利数据中心{% endblock %}
 {% block header %}
     数据概括
@@ -7,25 +8,29 @@
 
 {% block content_body %}
 <section style="margin:auto; padding-top:20px;" class="content container-fluid">
+    <script src="static/js/echarts.js"></script>
+    {% if user.admin_type == 1 %}
     <form id="select_form" role="form" action="/" method="get" enctype="multipart/form-data">
         <div class="form-group" style="margin-left:10px; font-size:16px; text-align:right;width:100%;">
-          <label for="store_id">选择门店</label>
-             <select onchange="gotolaction('/?store_id='+this.value)" id="select_store_id" name="store_id">
+
+            <label for="store_id">选择门店</label>
+            <select onchange="gotolaction('/?store_id='+this.value)" id="select_store_id" name="store_id">
+                {% all_stores as stores %}
                 {% for item in stores %}
-                <option {% if item.id == store_id %}
-                        selected="selected"
-                        {% endif %} value="{{item.id}}">{{item.name}}</option>
+                <option {% if item.id == store_id %} selected="selected" {% endif %} value="{{item.id}}">{{item.name}}</option>
                 {% endfor %}
-             </select>
+            </select>
+
         </div>
     </form>
-    <script src="static/js/echarts.js"></script>
+
     <div id="main" style="width:100%;height:500px; border:1px solid red;"></div>
     <div style="font-size:14px; border:1px solid red;">
         统计总天数：{{all_data.count}} 总营业额：{{totle_turnover|floatformat:'2'}} 总毛利：{{totle_gross|floatformat:'2'}}<br />
         营业额总平均：{% widthratio totle_turnover all_data.count 1 %}<br />
         毛利额总平均：{% widthratio totle_gross all_data.count 1%}
     </div>
+    {% endif %}
     <div id="main_hours" style="width:100%;height:500px; border:1px solid red;"></div>
     <div id="main_weeks" style="width:100%;height:500px; border:1px solid red;"></div>
     <script type="text/javascript">
@@ -35,13 +40,14 @@
             alert('changed');
             form.submit();
         }
+        {% if user.admin_type == 1 %}
         // 基于准备好的dom，初始化echarts实例
         var myChart = echarts.init(document.getElementById('main'));
 
         // 指定图表的配置项和数据
         var option = {
             title: {
-                text: '[{{store_name}}]营业数据总表'
+                text: '[{{store_name}}]营业趋势'
             },
             tooltip: {},
             legend: {
@@ -74,43 +80,7 @@
 
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
-
-
-        // 基于小时数据图标
-        // 基于准备好的dom，初始化echarts实例
-        var myChart = echarts.init(document.getElementById('main_hours'));
-
-        // 指定图表的配置项和数据
-        var option = {
-            title: {
-                text: '[{{store_name}}]24小时营业额'
-            },
-            tooltip: {},
-            legend: {
-                data:['营业额'],
-                right:0,
-            },
-            xAxis: {
-                data: [
-                  {% for key, value in day_money.items %}
-                    '{{key}}',
-                  {% endfor %}
-                ]
-            },
-            yAxis: {},
-            series: [{
-                name: '营业额',
-                type: 'bar',
-                data: [
-                  {% for key, value in day_money.items %}
-                    {{value}},
-                    {% endfor %}
-                ]
-                },]
-        };
-
-        // 使用刚指定的配置项和数据显示图表。
-        myChart.setOption(option);
+        {% endif %}
 
 
         // 基于一周数据图标
@@ -120,7 +90,7 @@
         // 指定图表的配置项和数据
         var option = {
             title: {
-                text: '[{{store_name}}]一周营业额'
+                text: '[{{store_name}}]一周营业趋势'
             },
             tooltip: {},
             legend: {
@@ -145,9 +115,46 @@
                 ]
                 },]
         };
-
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
+
+
+        $.get('/day_sales_trend',function(data){
+            all_data = eval(data)
+            time_data = []
+            nums_data = []
+            for(i=0;i<all_data.length;i++){
+                time_data.push(all_data[i][0])
+                nums_data.push(all_data[i][1])
+            }
+            // 基于小时数据图标
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('main_hours'));
+
+            // 指定图表的配置项和数据
+            var option = {
+                title: {
+                    text: '[{{store_name}}]24小时营业趋势'
+                },
+                tooltip: {},
+                legend: {
+                    data:['营业额'],
+                    right:0,
+                },
+                xAxis: {
+                    data: time_data
+                },
+                yAxis: {},
+                series: [{
+                    name: '营业额',
+                    type: 'bar',
+                    data: nums_data
+                    },]
+            };
+
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+        });
     </script>
 </section>
 {% endblock %}

@@ -23,7 +23,7 @@ urlpatterns = [
     # 营业数据
     path('', busd_view.index),
     path('/<int:store_id>', busd_view.index),
-    path('upload_xls', busd_view.upload_xls),
+    path('upload_form', busd_view.upload_form),
     path('new_store', busd_view.new_store),
     path('add_new_store', busd_view.add_new_store),
     path('goods_list', busd_view.goods_list_page),
@@ -38,8 +38,10 @@ urlpatterns = [
     path('quality_list/<int:store_id>', busd_view.quality_list),
 
     # api
+    path('upload_xls', api.upload_xls), # 上传数据
     path('stock_state/<int:id>', api.stock_state),  # 改变进货补货状态
-    path('quality_state/<int:id>', api.quality_state),
+    path('quality_state/<int:id>', api.quality_state),  # 改变保质状态
+    path('day_sales_trend', api.day_sales_trend),   # 获一天24小时数据趋势
 
     # 登录
     path('login', login_view.login),

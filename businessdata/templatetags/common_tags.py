@@ -21,7 +21,6 @@ register = template.Library()
 @register.simple_tag()
 def all_stores():
     stores = store_list.objects.all()
-    a = '1'
     return stores
 
 

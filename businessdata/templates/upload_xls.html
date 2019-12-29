@@ -15,13 +15,45 @@
             alert('{{info}}')
           </script>
           {% endif %}
-          {{true_content}}
+          {{true_content}}<br />
           {{false_content}}
-            <form role="form" action="/upload_xls" method="post" enctype="multipart/form-data">
+<!--            <form role="form" action="/upload_xls" method="post" enctype="multipart/form-data">-->
+          <div id="loading" style="width:100%; height:2600px; margin-top:20px; text-align:center; display:none;">
+              上传中... ...<br />
+              <img src="static/pic/loading.gif">
+          </div>
+          <script type="text/javascript">
+              function submit_form(){
+                document.getElementById('loading').style.display = '';
+                var form = new FormData();
+                var csr = document.file_form.csrfmiddlewaretoken.value;
+                var store_id = document.file_form.store_id.value;
+                var file_type = document.file_form.file_type.value;
+                var xls = document.getElementById('exampleInputFile').files;
+                form.append('store_id', store_id);
+                form.append('file_type', file_type);
+                form.append('xls',xls[0]);
+                form.append('csrfmiddlewaretoken', csr);
+                $.ajax({
+                    url:'upload_xls',
+                    type:'POST',
+                    data:form,
+                    processData:false,//不处理数据,
+                    contentType:false,
+                    success:function(result){
+                        document.getElementById('loading').style.display = 'none';
+                        result = eval(result)
+                        alert_str = result['info']+' 成功:'+result['ok'].length+' 错误:'+result['err'].length+' 重复：'+result['fail'].length
+                        alert(alert_str)
+                    }
+                })
+              }
+          </script>
+          <form name="file_form" role="form" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
               <div class="box-body">
                 <div class="form-group">
-                  <label for="store_select">选择门店</label>
+                  <label for="store_select">选择门店：</label>
                     <select name="store_id">
                         {% for item in stores %}
                         <option value="{{item.id}}">{{item.name}}</option>
@@ -29,7 +61,7 @@
                     </select>
                 </div>
                   <div class="form-group">
-                    <label for="store_select">选择门店</label>
+                    <label for="store_select">数据类型：</label>
                         <select name="file_type">
                             {% for id, item in file_type.items %}
                             <option value="{{id}}">{{item}}</option>
@@ -43,7 +75,7 @@
                   </div>
               </div>
               <div class="box-footer">
-                <button type="submit" class="btn btn-primary">保存</button>
+                <button type="button" onclick="submit_form()" class="btn btn-primary">保存</button>
               </div>
             </form>
           </div>

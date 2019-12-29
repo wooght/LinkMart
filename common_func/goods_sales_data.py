@@ -81,15 +81,15 @@ def day_sales_data(forms_list):
 
 
 # 计算一周销售情况
-def week_sales_data(forms_list):
+def week_sales_data(all_data):
     weeks = range(1, 8)
     week_sales = {}
     for i in weeks:
         week_sales[i] = 0
-    for form in forms_list:
-        form_date = form.form_date
-        pd_weekday = pd.to_datetime(form.form_date)
+    for day in all_data:
+        date = day.date
+        pd_weekday = pd.to_datetime(date)
         this_weekday = pd_weekday.weekday()+1     # 0指星期一
-        week_sales[this_weekday] += form.form_money_true
+        week_sales[this_weekday] += day.turnover
 
     return week_sales
