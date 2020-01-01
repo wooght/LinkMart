@@ -10,6 +10,8 @@ import pandas as pd
 from common_func.wooght_forms import one_day_date
 
 
+# 商品销售趋势统计
+# 统计日均，近30天
 class goods_sales_data:
     def __init__(self, form_list, start_day, add_date=''):
         self.date_dict = {}
@@ -75,7 +77,7 @@ def day_sales_data(forms_list):
     for form in forms_list:
         form_hour = form.form_time
         this_hour = int(str(form_hour).split(':')[0])
-        day_hours[this_hour] += form.form_money_true
+        day_hours[this_hour] += form.goods_money
 
     return day_hours
 

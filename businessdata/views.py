@@ -55,14 +55,20 @@ def index(request):
                                           'week_money': week_money})
 
 
+# 分类数据展示
+def classify_page(request):
+    return render(request, 'classify.html')
+
+
 # 商品列表页面展示
+# 默认显示默认分类
 def goods_list_page(request, classify='默认分类'):
     classify_keys = []
     if request.method == 'GET':
         goods_code = request.GET.get('goods_code')
         if not goods_code:
             # 查询类别 在没有搜索时 显示类别
-            classify_data = goods_list.objects.values('classify')
+            classify_data = goods_list.objects.values('classify').filter(store_id=request.session['store_id'])
             for item in classify_data:
                 if item['classify'] not in classify_keys:
                     classify_keys.append(item['classify'])
@@ -70,11 +76,13 @@ def goods_list_page(request, classify='默认分类'):
                 classify = request.GET.get('classify')
             all_data = goods_list.objects.filter(store_id=request.session['store_id'], classify=classify)
         else:
+            # 通过条码查询
             all_data = goods_list.objects.filter(bar_code__contains=goods_code,
                                                  store_id=request.session['store_id'])  # # 字段名__contains 模糊查询 注意中间双划线
-            if len(all_data)<1:
+            if len(all_data) < 1:
+                # 通过名称查询
                 all_data = goods_list.objects.filter(name__contains=goods_code,
-                                                 store_id=request.session['store_id'])
+                                                     store_id=request.session['store_id'])
     else:
         all_data = goods_list.objects.all()
     return render(request, 'goods_list.html', {'goods_list': all_data, 'classify_keys': classify_keys})
@@ -97,7 +105,8 @@ def goods_form(request, goods_id, return_info=''):
     # 查询商品属性
     goods = goods_list.objects.filter(id=goods_id)[0]
     # 查询商品订单数据
-    form_list = order_form.objects.filter(goods_code=goods.bar_code, store_id=goods.store_id.id, form_date__gt=one_day_date(form_time['forms'])).order_by('form_date')
+    form_list = order_form.objects.filter(goods_code=goods.bar_code, store_id=goods.store_id.id,
+                                          form_date__gt=one_day_date(form_time['forms'])).order_by('form_date')
 
     # 处理商品订单数据
     # 计算/组装前段所需数据
@@ -175,14 +184,15 @@ def quality_list(request, store_id=0):
     return_quality_list = []
     goods_list = goods_quality.objects.filter(state=1, store_id=store_id)
     for good in goods_list:
-        form_list = order_form.objects.filter(goods_code=good.goods_code, store_id=store_id, form_date__gt=one_day_date(form_time['quality'])).order_by('form_date')
+        form_list = order_form.objects.filter(goods_code=good.goods_code, store_id=store_id,
+                                              form_date__gt=one_day_date(form_time['quality'])).order_by('form_date')
         good_name = good.goods_id.name
 
         goods_sales = goods_sales_data(form_list, form_time['quality'], good.add_date)
         goods_sales.run()
 
         new_quality = {'goods_name': good_name, 'goods_code': good.goods_code, 'stock_nums': good.stock_nums,
-                       'last_day': good.date_nums-goods_sales.last_day, 'goods_id': good.goods_id,
+                       'last_day': good.date_nums - goods_sales.last_day, 'goods_id': good.goods_id,
                        'totle_num_30': goods_sales.totle_num_30, 'add_date': good.add_date, 'id': good.id}
         return_quality_list.append(new_quality)
     return render(request, 'quality_list.html', {'store_id': store_id, 'goods_list': return_quality_list})
@@ -199,7 +209,8 @@ def stock_list(request, store_id=0, stock_type=1):
     return_stock_list = []
     goods_list = stock_width_goods.objects.filter(stock_type=stock_type, state=1, store_id=store_id)
     for good in goods_list:
-        form_list = order_form.objects.filter(goods_code=good.goods_code, store_id=store_id, form_date__gt=one_day_date(form_time['stock'])).order_by('form_date')
+        form_list = order_form.objects.filter(goods_code=good.goods_code, store_id=store_id,
+                                              form_date__gt=one_day_date(form_time['stock'])).order_by('form_date')
         goods_name = good.goods_id.name
 
         # 获取销售数据

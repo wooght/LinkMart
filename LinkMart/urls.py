@@ -36,12 +36,14 @@ urlpatterns = [
     path('goods_quality_save', busd_view.goods_quality_save),
     path('quality_list', busd_view.quality_list),
     path('quality_list/<int:store_id>', busd_view.quality_list),
+    path('classify_page', busd_view.classify_page),
 
     # api
     path('upload_xls', api.upload_xls), # 上传数据
     path('stock_state/<int:id>', api.stock_state),  # 改变进货补货状态
     path('quality_state/<int:id>', api.quality_state),  # 改变保质状态
     path('day_sales_trend', api.day_sales_trend),   # 获一天24小时数据趋势
+    path('classify_sales_ratio', api.classify_sales_ratio),     # 获取类别比例
 
     # 登录
     path('login', login_view.login),

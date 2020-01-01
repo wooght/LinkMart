@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from common_func.str_replace import str_replace
 from common_func.goods_sales_data import goods_sales_data, day_sales_data, week_sales_data
 from common_func.wooght_forms import one_day_date, goods_quality_forms
+from common_func.classify_data import classify_data
 import json
 
 
@@ -45,7 +46,7 @@ def upload_xls(request):
     # 判断是否提交
     if request.method == 'POST':
         if not request.FILES:
-            return HttpResponse('('+json.dumps(return_content)+')')
+            return HttpResponse('(' + json.dumps(return_content) + ')')
         file = request.FILES['xls']
         # 获取后缀名
         type_excel = file.name.split('.')[1]
@@ -118,13 +119,13 @@ def save_goods(store_id, data_list):
             else:
                 bar_code = items[0]  # 条码
                 qgp = items[8]  # 保质期
-                classify = items[3] # 分类
+                classify = items[3]  # 分类
                 stock_nums = items[7]
                 if not qgp:
                     qgp = 0
                 id = store_list.objects.filter(id=store_id)[0]
                 to_save = goods_list(name=goods_name, bar_code=bar_code, qgp=qgp, store_id=id,
-                                     stock_nums=stock_nums, classify = classify)
+                                     stock_nums=stock_nums, classify=classify)
                 to_save.save()
                 return_content['ok'].append(store_id)
         except Exception as e:
@@ -190,7 +191,7 @@ def save_form(store_id, data_list):
             if not form_money_discount:
                 form_money_discount = 0  # 优惠金额默认0
             form_money_true = float(form_money) - float(form_money_discount)
-            goods = goods_list.objects.filter(name=goods_name)
+            goods = goods_list.objects.filter(name=goods_name, store_id=store_id)
             # 名字不在系统里
             # 记录错误条码
             if not goods:
@@ -214,13 +215,25 @@ def save_form(store_id, data_list):
     return return_content
 
 
-# 一天24小时营业数据
+# 一天24小时营业数据 trend 趋势
 def day_sales_trend(request):
     # 获取小时数据
-    all_forms = order_form.objects.filter(form_money__gt=0, store_id=request.session['store_id'], form_date__gt=one_day_date(31))  # 最近一月
+    all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(30))  # 最近一月
     day_money = day_sales_data(all_forms)
     return_arr = []
     for day, value in day_money.items():
         return_arr.append([day, value])
 
-    return HttpResponse('('+json.dumps(return_arr)+')')
+    return HttpResponse('(' + json.dumps(return_arr) + ')')
+
+
+# 分类销量对比
+def classify_sales_ratio(request):
+    # 获取所有商品数据
+    all_goods = goods_list.objects.filter(store_id=request.session['store_id'])
+    # 获取销售数据
+    all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(30))  # 最近一月
+    class_data = classify_data(all_goods, all_forms)
+    sales_data = class_data.get_ratio()
+    return_dict = sorted(sales_data.items(), key=lambda x: x[1], reverse=False)
+    return HttpResponse('(' + json.dumps(return_dict) + ')')
