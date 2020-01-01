@@ -35,5 +35,5 @@ class classify_data:
             totle_nums += forms.goods_num
         classify_ratio = {}
         for key, value in self.classify_sales.items():
-            classify_ratio[key] = float('%.4f' % (value / totle_nums))*100
+            classify_ratio[key] = float('%.2f' % (value/90))
         return classify_ratio

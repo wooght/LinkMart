@@ -232,7 +232,7 @@ def classify_sales_ratio(request):
     # 获取所有商品数据
     all_goods = goods_list.objects.filter(store_id=request.session['store_id'])
     # 获取销售数据
-    all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(30))  # 最近一月
+    all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(90))  # 最近一月
     class_data = classify_data(all_goods, all_forms)
     sales_data = class_data.get_ratio()
     return_dict = sorted(sales_data.items(), key=lambda x: x[1], reverse=False)

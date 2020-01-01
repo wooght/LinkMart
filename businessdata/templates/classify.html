@@ -9,51 +9,126 @@
 {% block content_body %}
 <section style="margin:auto; padding-top:20px;" class="content container-fluid">
     <script src="static/js/echarts.js"></script>
-
+    <div id="main_pie" style="width:100%;height:500px; border:1px solid red;"></div>
     <div id="main" style="width:100%;height:1200px; border:1px solid red;"></div>
+
     <script type="text/javascript">
-        $.get('/classify_sales_ratio',function(data){
-            all_data = eval(data)
-            classify_data = []
-            sales_data = []
-            for(key in all_data){
-                classify_data.push(all_data[key][0])
-                sales_data.push(all_data[key][1])
-            }
-            // 基于小时数据图标
-            // 基于准备好的dom，初始化echarts实例
-            var myChart = echarts.init(document.getElementById('main'));
+    function set_pie(all_data){
+        var myChart = echarts.init(document.getElementById('main_pie'));
+        classify_data = []
+        var i=0;
+        for(key in all_data){
+            if(all_data[key][1]<1){continue;}
+            classify_data.push({value:all_data[key][1],name:all_data[key][0]})
+        }
+        option = {
+            backgroundColor: '#2c343c',
 
-            // 指定图表的配置项和数据
-            var option = {
-                title: {
-                    text: '分类销售比例'
-                },
-                tooltip: {},
-                legend: {
-                    data:['销售额'],
-                    right:0,
-                },
-                yAxis: {
-                    data: classify_data,
-                    axisLabel:{
-                        interval:0, // 标签没有间隔，及标签全部显示
+            title: {
+                text: '类别销售数量对比',
+                left: 'center',
+                top: 20,
+                textStyle: {
+                    color: '#ccc'
+                }
+            },
+
+            tooltip : {
+                trigger: 'item',
+                formatter: "{a} <br/>{b} : {c} ({d}%)"
+            },
+            series:[
+                {
+                    name:'',
+                    type:'pie',
+                    radius : '75%',
+                    center: ['50%', '50%'],
+                    data:classify_data.sort(function (a, b) { return a.value - b.value; }),
+                    roseType: 'radius',
+                    label: {
+                        normal: {
+                            textStyle: {
+                                color: 'rgba(255, 255, 255, 0.3)'
+                            }
+                        }
                     },
-                },
-                xAxis: {
-                    position:'top',
-                    scale:true,
-                },
-                series: [{
-                    name: '营业额',
-                    type: 'bar',
-                    data: sales_data
-                    },]
-            };
+                    labelLine: {
+                        normal: {
+                            lineStyle: {
+                                color: 'rgba(255, 255, 255, 0.3)'
+                            },
+                            smooth: 0.2,
+                            length: 10,
+                            length2: 20
+                        }
+                    },
+                    itemStyle: {
+                        normal: {
+                            color: '#c23531',
+                            shadowBlur: 200,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    },
 
-            // 使用刚指定的配置项和数据显示图表。
-            myChart.setOption(option);
-        });
+                    animationType: 'scale',
+                    animationEasing: 'elasticOut',
+                    animationDelay: function (idx) {
+                        return Math.random() * 200;
+                    }
+                }
+            ]
+        };
+        myChart.setOption(option);
+    }
+
+
+    $.get('/classify_sales_ratio',function(data){
+        all_data = eval(data)
+        classify_data = []
+        sales_data = []
+        for(key in all_data){
+            classify_data.push(all_data[key][0])
+            sales_data.push(all_data[key][1])
+        }
+        // 基于小时数据图标
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('main'));
+
+        // 指定图表的配置项和数据
+        var option = {
+            backgroundColor: '#eeeeee',
+            title: {
+                text: '分类销售比例',
+                textStyle:{
+                    color:'#ccc',
+                }
+            },
+            tooltip: {},
+            legend: {
+                data:['销售额'],
+                right:0,
+            },
+            yAxis: {
+                data: classify_data,
+                axisLabel:{
+                    interval:0, // 标签没有间隔，及标签全部显示
+                },
+            },
+            xAxis: {
+                position:'top',
+                scale:true,
+            },
+            series: [{
+                name: '营业额',
+                type: 'bar',
+                data: sales_data
+                },]
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
+        set_pie(all_data);
+    });
     </script>
 </section>
 {% endblock %}
