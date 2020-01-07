@@ -9,25 +9,82 @@
     {%for item in classify_keys%}
     <a href="/goods_list?classify={{item}}"><span{% if request.GET.classify == item%} class="badge bg-red" {%else%} class="badge bg-blue" {%endif%}> {{item}}</span></a>
     {%endfor%}
-    <table class="table table-hover">
+    <script src="/static/js/echarts.js"></script>
+    <div id="main" style="width:100%;height:400px;border:1px solid red;"></div>
+    <div style="width:100%; height:18px; font-size:12px; border:1px solid red; color:#fff; background:red;">
+        <span style="float:left; display:block;">日均：<b id="day"></b></span>
+        <span style="float:right; display:block;">近30日：<b id="month"></b></span>
+    </div>
+    <table class="table table-hover" id="goods_list">
         <tr>
-            <th>条码</th>
-            <th>名称</th>
+            <th>商品</th>
             <th>分类</th>
             <th>库存</th>
-            <th>门店</th>
-            <th>编辑</th>
+            <th>30日</th>
         </tr>
-        {% for item in goods_list %}
-        <tr>
-            <td><a href="/goods_form/{{item.id}}"><span class="badge bg-red">{{item.bar_code}}</span></a></td>
-            <td><span class="badge bg-blue">{{item.name}}</span></td>
-            <td>{{item.classify}}</td>
-            <td>{{item.stock_nums}}</td>
-            <td>{{item.store_id}}</td>
-            <td><span class="label label-success"><a style="color:#fff;" href='/goods_form/{{item.id}}'>查看</a></span></td>
-        </tr>
-        {% endfor %}
+<!--        {% for item in goods_list %}-->
+<!--        <tr>-->
+<!--            <td><a href="/goods_form/{{item.id}}"><span class="badge bg-red">{{item.bar_code}}</span>-->
+<!--                <br /><span class="badge bg-blue">{{item.name}}</span></a></td>-->
+<!--            <td>{{item.classify}}</td>-->
+<!--            <td>{{item.stock_nums}}</td>-->
+<!--            <td>{{item.store_id}}</td>-->
+<!--            <td><span class="label label-success"><a style="color:#fff;" href='/goods_form/{{item.id}}'>查看</a></span></td>-->
+<!--        </tr>-->
+<!--        {% endfor %}-->
     </table>
+    <script>
+        {%if is_search%}
+        $.get('/one_classify_sales?goods_code={{request.GET.goods_code}}',function(data){
+        {%else%}
+        $.get('/one_classify_sales?classify={{request.GET.classify}}',function(data){
+        {%endif%}
+            all_data = eval(data)
+            all_date = Object.keys(all_data.date_dict)
+            all_nums = Object.values(all_data.date_dict)
+            all_goods = all_data.goods_sales_list;
+            $('#day').text(all_data.day_average);
+            $('#month').text(all_data.totle_num_30);
+            // 基于小时数据图标
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('main'));
+
+            // 指定图表的配置项和数据
+            var option = {
+                title: {
+                    text: '[{%if is_search%}{{request.GET.goods_code}}{%else%}{{request.GET.classify}}{%endif%}]销售趋势'
+                },
+                tooltip: {},
+                legend: {
+                    data:['营业量'],
+                    right:0,
+                },
+                xAxis: {
+                    data: all_date
+                },
+                yAxis: {},
+                series: [{
+                    name: '营业量',
+                    type: 'bar',
+                    data: all_nums
+                    },]
+            };
+
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+
+            //显示商品列表
+            var goods_list = $('#goods_list')
+            for(good in all_goods){
+                new_html = '<tr><td><a href="/goods_form/'+all_goods[good][3]+'"><span class="badge bg-red">'+all_goods[good][1]+
+                            '</span><br /><span class="badge bg-blue">'+all_goods[good][4]+
+                            '</span></a></td><td>'+all_goods[good][0]+
+                            '</td><td>'+all_goods[good][5]+
+                            '</td><td>'+all_goods[good][7]+
+                            '</tr>'
+                goods_list.append(new_html)
+            }
+        });
+    </script>
 </section>
 {% endblock %}

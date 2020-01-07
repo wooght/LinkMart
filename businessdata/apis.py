@@ -9,7 +9,7 @@ from businessdata.models import store_list, bs_data, goods_list, order_form, sto
 from django.contrib.auth.decorators import login_required
 from common_func.str_replace import str_replace
 from common_func.goods_sales_data import goods_sales_data, day_sales_data, week_sales_data
-from common_func.wooght_forms import one_day_date, goods_quality_forms
+from common_func.wooght_forms import one_day_date, goods_quality_forms, form_time
 from common_func.classify_data import classify_data
 import json
 
@@ -237,3 +237,39 @@ def classify_sales_ratio(request):
     sales_data = class_data.get_ratio()
     return_dict = sorted(sales_data.items(), key=lambda x: x[1], reverse=False)
     return HttpResponse('(' + json.dumps(return_dict) + ')')
+
+
+# 某类销售趋势
+def one_classify_sales(request, classify='默认分类'):
+    # 通过类别查询
+    if request.GET.get('classify'):
+        classify = request.GET.get('classify')
+        all_goods = goods_list.objects.filter(store_id=request.session['store_id'], classify=classify)
+    # 通过搜索查询
+    elif request.GET.get('goods_code'):
+        goods_code = request.GET.get('goods_code')
+        # 通过条码查询
+        all_goods = goods_list.objects.filter(bar_code__contains=goods_code,
+                                             store_id=request.session['store_id'])  # # 字段名__contains 模糊查询 注意中间双划线
+        if len(all_goods) < 1:
+            # 通过名称查询
+            all_goods = goods_list.objects.filter(name__contains=goods_code,
+                                                 store_id=request.session['store_id'])
+    # 默认查询默认分类
+    else:
+        all_goods = goods_list.objects.filter(store_id=request.session['store_id'], classify=classify)
+    # 获取所有商品
+    all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(form_time['forms']))  # 最近一月
+
+    goods_sales = goods_sales_data(all_forms, form_time['forms'])
+    goods_sales.classify_screen(all_goods)  # 订单筛选
+    goods_sales.run()
+    goods_sales_list = goods_sales.run_to_list()    # 每个商品的销售概况
+
+    return_dict = {}
+    return_dict['date_dict'] = goods_sales.date_dict
+    return_dict['day_average'] = goods_sales.day_average
+    return_dict['totle_num_30'] = goods_sales.totle_num_30
+    return_dict['goods_sales_list'] = goods_sales_list
+    return HttpResponse('('+json.dumps(return_dict)+')')
+

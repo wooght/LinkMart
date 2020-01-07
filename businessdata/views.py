@@ -63,7 +63,8 @@ def classify_page(request):
 # 商品列表页面展示
 # 默认显示默认分类
 def goods_list_page(request, classify='默认分类'):
-    classify_keys = []
+    classify_keys = []  # 类别列表 默认为空
+    is_search = False
     if request.method == 'GET':
         goods_code = request.GET.get('goods_code')
         if not goods_code:
@@ -76,6 +77,7 @@ def goods_list_page(request, classify='默认分类'):
                 classify = request.GET.get('classify')
             all_data = goods_list.objects.filter(store_id=request.session['store_id'], classify=classify)
         else:
+            is_search = True
             # 通过条码查询
             all_data = goods_list.objects.filter(bar_code__contains=goods_code,
                                                  store_id=request.session['store_id'])  # # 字段名__contains 模糊查询 注意中间双划线
@@ -85,7 +87,8 @@ def goods_list_page(request, classify='默认分类'):
                                                      store_id=request.session['store_id'])
     else:
         all_data = goods_list.objects.all()
-    return render(request, 'goods_list.html', {'goods_list': all_data, 'classify_keys': classify_keys})
+    return render(request, 'goods_list.html', {'goods_list': all_data, 'classify_keys': classify_keys,
+                                               'is_search': is_search})
 
 
 # 提交文件入口

@@ -1,18 +1,3 @@
-"""LinkMart URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/2.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path
 from businessdata import views as busd_view
@@ -39,11 +24,12 @@ urlpatterns = [
     path('classify_page', busd_view.classify_page),
 
     # api
-    path('upload_xls', api.upload_xls), # 上传数据
+    path('upload_xls', api.upload_xls),  # 上传数据
     path('stock_state/<int:id>', api.stock_state),  # 改变进货补货状态
     path('quality_state/<int:id>', api.quality_state),  # 改变保质状态
-    path('day_sales_trend', api.day_sales_trend),   # 获一天24小时数据趋势
-    path('classify_sales_ratio', api.classify_sales_ratio),     # 获取类别比例
+    path('day_sales_trend', api.day_sales_trend),  # 获一天24小时数据趋势
+    path('classify_sales_ratio', api.classify_sales_ratio),  # 获取类别比例
+    path('one_classify_sales', api.one_classify_sales),  # 某类别销量情况
 
     # 登录
     path('login', login_view.login),

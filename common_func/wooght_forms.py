@@ -55,7 +55,7 @@ def one_day_date(one=0):
 
 # 关于订单时间的配置
 form_time = {
-    'stock': 120,
-    'quality': 90,
-    'forms': 360,
+    'stock': 120,   # 进货补货查看最近4个月的数据
+    'quality': 90,  # 过期商品 查看最近3个月的数据
+    'forms': 360,   # 订单，查询最近1年的数据
 }

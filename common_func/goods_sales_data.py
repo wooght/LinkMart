@@ -10,17 +10,20 @@ import pandas as pd
 from common_func.wooght_forms import one_day_date
 
 
+# 统计目标：单个商品，某类商品
 # 商品销售趋势统计
 # 统计日均，近30天
 class goods_sales_data:
     def __init__(self, form_list, start_day, add_date=''):
-        self.date_dict = {}
+        self.date_dict = {}  # 日期：销售数量
         self.form_list = form_list
         self.start_day = start_day
         self.day_average = 0  # 日均
         self.totle_num_30 = 0  # 近30天
         self.add_date = add_date
 
+    # #生成时间轴
+    # 根据统计天数 组装线性时间字典 日期:数量
     def mk_date(self):
         # 组装时间轴
         date_list = pd.date_range(start=one_day_date(self.start_day), end=one_day_date())
@@ -29,6 +32,9 @@ class goods_sales_data:
         for i in date_list:
             self.date_dict[i.strftime('%Y-%m-%d')] = 0
 
+    # #运行统计结果->一个图表使用
+    # 时间线性组装销量字典 date_dict
+    # 计算平均值-> 月均，近30日
     def run(self):
         self.mk_date()
         # 最开始售卖日期
@@ -38,12 +44,11 @@ class goods_sales_data:
             date_30 = pd.to_datetime(one_day_date(30))
         else:
             date_30 = pd.to_datetime(self.add_date)
-            last_day = pd.to_datetime(one_day_date())-date_30
+            last_day = pd.to_datetime(one_day_date()) - date_30
             self.last_day = last_day.days
         # 销售总数量
         totle_num = 0
-        # 近30天销售数量
-        totle_num_30 = 0
+
         # 遍历订单列表
         for item in self.form_list:
             now_date = item.form_date
@@ -64,6 +69,60 @@ class goods_sales_data:
             self.day_average = 0
         else:
             self.day_average = float('%.2f' % (totle_num / count_day.days))
+
+    # #多个商品统计
+    # 返回商品列表 模型为sales_data_models
+    def run_to_list(self):
+        goods_sales_list = {}  # 返回数据字典 code->sales_data_models
+        min_date = pd.to_datetime(one_day_date())  # 第一次售卖日期
+        date_30 = pd.to_datetime(one_day_date(30))  # 30日起步日期
+        # 初始化数据列表
+        for good in self.goods_list:
+            sales_data_models = dict(id=good.id, name=good.name, code=good.bar_code, stock=good.stock_nums,
+                                     classify=good.classify, day_average=0, totle_num_30=0,
+                                     totle_num=0)
+            goods_sales_list[good.bar_code] = sales_data_models
+
+        # 遍历订单
+        for item in self.form_list:
+            now_date = item.form_date
+            # 添加数量
+            goods_sales_list[item.goods_code]['totle_num'] += item.goods_num
+            # 如果有销售数据
+            if item.goods_num > 0:
+                # __le__ datetime大小比较之 小于等于/  __ge__ 大于等于/  __eq__ 等于/  __gt__大于/ __ne__等于
+                # if now_date.__le__(goods_sales_list[item.goods_code]['min_date']):
+                #     goods_sales_list[item.goods_code]['min_date'] = now_date
+                if now_date.__ge__(date_30):
+                    goods_sales_list[item.goods_code]['totle_num_30'] += item.goods_num
+        # pandas 组装
+        new_list = []
+        for item in goods_sales_list.values():
+            new_list.append(item)
+        pd_goods_sales = pd.DataFrame(new_list)
+        # 按照30日销量排序
+        pd_goods_sales.sort_values(by='totle_num_30', ascending=False, inplace=True)
+        return_list = []
+        for item in pd_goods_sales.values:
+            return_list.append(item.tolist())
+        return return_list
+
+    # #订单筛选
+    # 得到制定一类/部分商品的订单
+    # 返回订单列表form_list
+    def classify_screen(self, goods_list):
+        self.goods_list = goods_list
+        # 组装某类别下的商品条码列表
+        goods_to_classify = []
+        for good in goods_list:
+            goods_to_classify.append(good.bar_code)
+
+        # 根据条码列表筛选订单 组装新订单列表 属于某个类
+        classify_forms = []
+        for form in self.form_list:
+            if form.goods_code in goods_to_classify:
+                classify_forms.append(form)
+        self.form_list = classify_forms
 
 
 # 计算一天24小时销售情况
@@ -91,7 +150,7 @@ def week_sales_data(all_data):
     for day in all_data:
         date = day.date
         pd_weekday = pd.to_datetime(date)
-        this_weekday = pd_weekday.weekday()+1     # 0指星期一
+        this_weekday = pd_weekday.weekday() + 1  # 0指星期一
         week_sales[this_weekday] += day.turnover
 
     return week_sales
