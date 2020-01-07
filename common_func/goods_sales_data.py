@@ -103,8 +103,9 @@ class goods_sales_data:
         # 按照30日销量排序
         pd_goods_sales.sort_values(by='totle_num_30', ascending=False, inplace=True)
         return_list = []
-        for item in pd_goods_sales.values:
-            return_list.append(item.tolist())
+        for item, row in pd_goods_sales.iterrows():
+            return_list.append([row['classify'], row['name'], row['totle_num'], row['id'], row['code'], row['stock'],
+                                row['day_average'], row['totle_num_30']])
         return return_list
 
     # #订单筛选
