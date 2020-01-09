@@ -14,5 +14,5 @@ replace_dict = {
 def str_replace(old_str):
     new_str = ''
     for key, value in replace_dict.items():
-        new_str = old_str.replace(key, value)
-    return new_str
+        old_str = old_str.replace(key, value)
+    return old_str

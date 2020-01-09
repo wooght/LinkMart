@@ -109,7 +109,7 @@ def goods_form(request, goods_id, return_info=''):
     goods = goods_list.objects.filter(id=goods_id)[0]
     # 查询商品订单数据
     form_list = order_form.objects.filter(goods_code=goods.bar_code, store_id=goods.store_id.id,
-                                          form_date__gt=one_day_date(form_time['forms'])).order_by('form_date')
+                                          form_date__gt=one_day_date(form_time['forms'])).order_by('-form_date')    # -字段名 倒序排列
 
     # 处理商品订单数据
     # 计算/组装前段所需数据
