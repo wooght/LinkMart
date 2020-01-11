@@ -29,6 +29,7 @@
     <table class="table table-hover">
         <tr>
             <th>名称</th>
+            <th>库存</th>
             <th>日均</th>
             <th>月均</th>
             <th>近30日</th>
@@ -37,9 +38,10 @@
         {% for item in goods_list %}
         <tr id="tr_{{item.good.id}}">
             <td><a href="/goods_form/{{item.good.goods_id.id}}">{{item.goods_name}}<br /> {{item.good.goods_code}}</a></td>
+            <td>{{item.stocks}}</td>
             <td><span class="badge bg-blue">{{item.day_average}}</span></td>
             <td>{% widthratio item.day_average 1 30 as day%}{{day|floatformat:2}}</td>
-            <td>{{item.totle_num_30}}</td>
+            <td><span class="badge bg-green">{{item.totle_num_30}}</span></td>
             <td><span class="label label-success"><a style="color:#fff;" onclick="are_ok('{{item.goods_name}}','/stock_state/{{item.good.id}}','tr_{{item.good.id}}')" '>确认操作</a></span><br /></td>
         </tr>
         {% endfor %}

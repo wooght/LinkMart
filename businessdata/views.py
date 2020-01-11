@@ -215,12 +215,13 @@ def stock_list(request, store_id=0, stock_type=1):
         form_list = order_form.objects.filter(goods_code=good.goods_code, store_id=store_id,
                                               form_date__gt=one_day_date(form_time['stock'])).order_by('form_date')
         goods_name = good.goods_id.name
+        stock_nums = good.goods_id.stock_nums
 
         # 获取销售数据
         goods_sales = goods_sales_data(form_list, form_time['stock'])
         goods_sales.run()
         new_stock = {'goods_name': goods_name, 'good': good, 'day_average': goods_sales.day_average,
-                     'totle_num_30': goods_sales.totle_num_30}
+                     'totle_num_30': goods_sales.totle_num_30, 'stocks':stock_nums}
         return_stock_list.append(new_stock)
     return render(request, 'stock_goods_list.html', {'store_id': store_id,
                                                      'goods_list': return_stock_list,
