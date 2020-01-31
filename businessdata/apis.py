@@ -239,7 +239,9 @@ def classify_sales_ratio(request):
     return HttpResponse('(' + json.dumps(return_dict) + ')')
 
 
-# 某类销售趋势
+# function  某类销售趋势
+# function  某搜索相关内容销售趋势
+# api_json  dict->[datelist,day_average,totle_num_30,goods_list]
 def one_classify_sales(request, classify='默认分类'):
     # 通过类别查询
     if request.GET.get('classify'):
@@ -270,6 +272,6 @@ def one_classify_sales(request, classify='默认分类'):
     return_dict['date_dict'] = goods_sales.date_dict
     return_dict['day_average'] = goods_sales.day_average
     return_dict['totle_num_30'] = goods_sales.totle_num_30
-    return_dict['goods_sales_list'] = goods_sales_list
+    return_dict['goods_sales_list'] = goods_sales_list      # goods_list
     return HttpResponse('('+json.dumps(return_dict)+')')
 

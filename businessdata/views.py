@@ -208,21 +208,24 @@ def stock_list(request, store_id=0, stock_type=1):
     # 默认查看当前状态门店
     if not store_id:
         store_id = int(request.session['store_id'])
-    # 返回进货单列表
-    return_stock_list = []
-    goods_list = stock_width_goods.objects.filter(stock_type=stock_type, state=1, store_id=store_id)
-    for good in goods_list:
-        form_list = order_form.objects.filter(goods_code=good.goods_code, store_id=store_id,
-                                              form_date__gt=one_day_date(form_time['stock'])).order_by('form_date')
-        goods_name = good.goods_id.name
-        stock_nums = good.goods_id.stock_nums
 
-        # 获取销售数据
-        goods_sales = goods_sales_data(form_list, form_time['stock'])
-        goods_sales.run()
-        new_stock = {'goods_name': goods_name, 'good': good, 'day_average': goods_sales.day_average,
-                     'totle_num_30': goods_sales.totle_num_30, 'stocks':stock_nums}
-        return_stock_list.append(new_stock)
+    stock_goods_list = stock_width_goods.objects.filter(stock_type=stock_type, state=1, store_id=store_id)
+    goods_list = []
+    # 商品列表组装    模型 goods_list
+    for stock_good in stock_goods_list:
+        good = the_goods()
+        good.id = stock_good.id
+        good.goods_list_id = stock_good.goods_id.id
+        good.name = stock_good.goods_id.name
+        good.bar_code = stock_good.goods_code
+        good.stock_nums = stock_good.goods_id.stock_nums
+        good.classify = stock_good.goods_id.classify
+        goods_list.append(good)
+    form_list = order_form.objects.filter(store_id=store_id, form_date__gt=one_day_date(form_time['stock'])).order_by('-form_date')
+    goods_sales = goods_sales_data(form_list, form_time['stock'])
+    goods_sales.mk_date()
+    goods_sales.classify_screen(goods_list)
+    return_stock_list = goods_sales.run_to_list()
     return render(request, 'stock_goods_list.html', {'store_id': store_id,
                                                      'goods_list': return_stock_list,
                                                      'stock_type': stock_type})
@@ -257,3 +260,12 @@ def add_new_store(request):
             info = form.errors
 
     return render(request, 'new_store.html', {'info': info})
+
+
+class the_goods:
+    id = None
+    goods_list_id = None
+    name = None
+    bar_code = None
+    stock_nums = None
+    classify = None

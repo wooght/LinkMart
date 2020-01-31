@@ -71,7 +71,7 @@ class goods_sales_data:
             self.day_average = float('%.2f' % (totle_num / count_day.days))
 
     # #多个商品统计
-    # 返回商品列表 模型为sales_data_models
+    # 返回商品列表 模型为goods_sales_list[code:sales_data_models,]
     def run_to_list(self):
         goods_sales_list = {}  # 返回数据字典 code->sales_data_models
         min_date = pd.to_datetime(one_day_date())  # 第一次售卖日期
@@ -80,32 +80,42 @@ class goods_sales_data:
         for good in self.goods_list:
             sales_data_models = dict(id=good.id, name=good.name, code=good.bar_code, stock=good.stock_nums,
                                      classify=good.classify, day_average=0, totle_num_30=0,
-                                     totle_num=0)
+                                     totle_num=0, min_date=min_date)
+            # 解决几个地方传递的ID不一样的问题 库存及补货处传递的ID为库存表中的ID
+            if hasattr(good, 'goods_list_id'):
+                sales_data_models['goods_list_id'] = good.goods_list_id
+            else:
+                sales_data_models['goods_list_id'] = 0
             goods_sales_list[good.bar_code] = sales_data_models
 
         # 遍历订单
         for item in self.form_list:
             now_date = item.form_date
+            code = item.goods_code
             # 添加数量
-            goods_sales_list[item.goods_code]['totle_num'] += item.goods_num
+            goods_sales_list[code]['totle_num'] += item.goods_num
             # 如果有销售数据
             if item.goods_num > 0:
                 # __le__ datetime大小比较之 小于等于/  __ge__ 大于等于/  __eq__ 等于/  __gt__大于/ __ne__等于
-                # if now_date.__le__(goods_sales_list[item.goods_code]['min_date']):
-                #     goods_sales_list[item.goods_code]['min_date'] = now_date
+                if now_date.__le__(goods_sales_list[code]['min_date']):
+                    goods_sales_list[code]['min_date'] = now_date
                 if now_date.__ge__(date_30):
-                    goods_sales_list[item.goods_code]['totle_num_30'] += item.goods_num
+                    goods_sales_list[code]['totle_num_30'] += item.goods_num
         # pandas 组装
         new_list = []
         for item in goods_sales_list.values():
+            count_day = pd.to_datetime(one_day_date()) - pd.to_datetime(item['min_date'])
+            if count_day.days > 0:
+                item['day_average'] = float('%.2f' % (item['totle_num'] / count_day.days))
             new_list.append(item)
         pd_goods_sales = pd.DataFrame(new_list)
         # 按照30日销量排序
-        pd_goods_sales.sort_values(by='totle_num_30', ascending=False, inplace=True)
+        if len(pd_goods_sales) > 0:
+            pd_goods_sales.sort_values(by='totle_num_30', ascending=False, inplace=True)
         return_list = []
         for item, row in pd_goods_sales.iterrows():
             return_list.append([row['classify'], row['name'], row['totle_num'], row['id'], row['code'], row['stock'],
-                                row['day_average'], row['totle_num_30']])
+                                row['day_average'], row['totle_num_30'], row['goods_list_id']])
         return return_list
 
     # #订单筛选

@@ -36,13 +36,13 @@
             <th>操作</th>
         </tr>
         {% for item in goods_list %}
-        <tr id="tr_{{item.good.id}}">
-            <td><a href="/goods_form/{{item.good.goods_id.id}}">{{item.goods_name}}<br /> {{item.good.goods_code}}</a></td>
-            <td>{{item.stocks}}</td>
-            <td><span class="badge bg-blue">{{item.day_average}}</span></td>
-            <td>{% widthratio item.day_average 1 30 as day%}{{day|floatformat:2}}</td>
-            <td><span class="badge bg-green">{{item.totle_num_30}}</span></td>
-            <td><span class="label label-success"><a style="color:#fff;" onclick="are_ok('{{item.goods_name}}','/stock_state/{{item.good.id}}','tr_{{item.good.id}}')" '>确认操作</a></span><br /></td>
+        <tr id="tr_{{item.3}}">
+            <td><a href="/goods_form/{{item.8}}">{{item.1}}<br /> {{item.4}}</a></td>
+            <td>{{item.5}}</td>
+            <td><span class="badge bg-blue">{{item.6}}</span></td>
+            <td>{% widthratio item.6 1 30 as day%}{{day|floatformat:2}}</td>
+            <td><span class="badge bg-green">{{item.7}}</span></td>
+            <td><span class="label label-success"><a style="color:#fff;" onclick="are_ok('{{item.1}}','/stock_state/{{item.3}}','tr_{{item.3}}')" '>确认操作</a></span><br /></td>
         </tr>
         {% endfor %}
     </table>
