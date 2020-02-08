@@ -12,6 +12,7 @@ from common_func.goods_sales_data import goods_sales_data, day_sales_data, week_
 from common_func.wooght_forms import one_day_date, goods_quality_forms, form_time
 from common_func.classify_data import classify_data
 import json
+import os
 
 
 # 改变进/补货状态
@@ -72,6 +73,25 @@ def upload_xls(request):
     else:
         return_content['info'] = 'error'
     return HttpResponse('(' + json.dumps(return_content) + ')')
+
+
+# 调用爬虫 下载文件
+# 解析文件并组装数据-》保存到数据库
+@login_required  # 需要登录
+def data_update(request, store_id, up_type):
+    from spider.email_spider import email_spider
+
+    return_content = {'ok': [], 'fail': [], 'info': 'on file', 'err': []}
+    spider = email_spider()
+    spider.run()
+    body = spider.body
+    if up_type == 'turnover':
+        return_content = save_turnover(store_id, body)
+    elif up_type == 'goods':
+        return_content = save_goods(store_id, body)
+    elif up_type == 'order':
+        return_content = save_form(store_id, body)
+    return HttpResponse('('+json.dumps(return_content, ensure_ascii=False)+')')
 
 
 # 营业数据处理
@@ -146,7 +166,7 @@ def save_form(store_id, data_list):
     for item in all_forms:
         cache_str = item.form_code + item.goods_name + str(item.goods_money)
         forms_cache.append(cache_str)
-    # print(forms_cache)
+
     # 一个订单只有一个单号，一个日期
     # 商品对应行不一定有单号和日期 没有的时候，就默认上一次数据
     last_form_code = ''
@@ -167,15 +187,15 @@ def save_form(store_id, data_list):
         # 没有goods_money或者goods_name 则为单个商品自定义折扣 无实际意义
         if not goods_money:
             continue
-
         # 判断是否重复提交
-        is_exists = order_form.objects.filter(form_code=form_code, goods_name=goods_name, goods_money=goods_money)
+        is_exists_str = form_code + goods_name + str(float(goods_money))
+        # is_exists = order_form.objects.filter(form_code=form_code, goods_name=goods_name, goods_money=goods_money)
         # 订单号长度判断 避免采用科学计数法
         if len(form_code) < 24:
-            return_content['err'].append(form_code + goods_name)
+            return_content['err'].append('单号有误：' + form_code + goods_name)
             continue
-        if is_exists:
-            return_content['fail'].append(form_code)
+        if is_exists_str in forms_cache:
+            return_content['fail'].append('重复订单：'+form_code)
         else:
             if not items[2]:
                 goods_num = 0
@@ -195,7 +215,7 @@ def save_form(store_id, data_list):
             # 名字不在系统里
             # 记录错误条码
             if not goods:
-                return_content['err'].append(form_code + '名称：' + goods_name)
+                return_content['err'].append('商品不存在：'+form_code + '名称：' + goods_name)
             else:
                 goods_code = goods[0].bar_code
                 to_save = order_form(form_code=form_code, goods_name=goods_name, goods_num=goods_num,
@@ -207,7 +227,7 @@ def save_form(store_id, data_list):
                     return_content['true'].append(store_id)
                 except Exception as e:
                     # 可能遇到问题 编码问题，整数问题，日期时间问题
-                    return_content['err'].append(goods_code + goods_name)
+                    return_content['err'].append('存储问题：' + goods_code + goods_name)
         last_form_datetime = date_time
         last_form_code = form_code
 

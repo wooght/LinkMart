@@ -48,6 +48,31 @@
                     }
                 })
               }
+              function to_spider(){
+                var store_id = document.file_form.store_id.value;
+                var file_type = document.file_form.file_type.value;
+                document.getElementById('loading').style.display = '';
+                try{
+                    $.ajax({
+                        url:'data_update/'+store_id+'/'+file_type,
+                        type:'GET',
+                        success:function(result){
+                            document.getElementById('loading').style.display = 'none';
+                            result = eval(result)
+                            alert_str = result['info']+' 成功:'+result['ok'].length+' 错误:'+result['err'].length+' 重复：'+result['fail'].length
+                            alert(alert_str)
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            /*弹出jqXHR对象的信息*/
+                            alert(jqXHR.responseText);
+                            alert(jqXHR.status);
+                        }
+                    })
+                }
+                catch(err){
+                    alert('数据错误！'+err)
+                }
+              }
           </script>
           <form name="file_form" role="form" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -76,9 +101,11 @@
               </div>
               <div class="box-footer">
                 <button type="button" onclick="submit_form()" class="btn btn-primary">保存</button>
+                <button type="button" onclick="to_spider()" class="btn btn-primary">更新</button>
               </div>
             </form>
           </div>
   </div>
+    <div id="update_result"></div>
 </section>
 {% endblock %}

@@ -30,6 +30,7 @@ urlpatterns = [
     path('day_sales_trend', api.day_sales_trend),  # 获一天24小时数据趋势
     path('classify_sales_ratio', api.classify_sales_ratio),  # 获取类别比例
     path('one_classify_sales', api.one_classify_sales),  # 某类别销量情况
+    path('data_update/<int:store_id>/<str:up_type>', api.data_update),   # 通过爬虫更新数据
 
     # 登录
     path('login', login_view.login),
