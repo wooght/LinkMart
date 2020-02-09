@@ -21,9 +21,9 @@ class IndexMiddleweare(object):
         if self.headless:
             self.options.add_argument('--headless')
             self.options.add_argument('--disable-gpu')                      # 以上两项为开启无头模式
-        self.options.add_argument('--window-size=800,768')                 # 默认窗口大小
+        self.options.add_argument('--window-size=1360,800')                 # 默认窗口大小
         self.options.add_argument('--no-sandbox')                           # 沙盒模式
-        self.options.add_argument('blink-settings=imagesEnabled=false')     # 禁止加载图片
+        # self.options.add_argument('blink-settings=imagesEnabled=false')     # 禁止加载图片
         # pyCharm运行时候无效，命令运行时有效？？？
         prefs = {
             'profile.default_content_settings.popups': 0,              # 禁止弹出下载窗口
@@ -38,3 +38,8 @@ class IndexMiddleweare(object):
     def echo(self, char):
         print(func.now(), ':', str(char))
 
+    # 隐藏按钮点击 只支持ID
+    def readonly_click(self, id):
+        readonlyjs = "var readonlyjs = document.getElementById('"+id+"');readonlyjs.removeAttribute('readOnly');"
+        self.driver.execute_script(readonlyjs)
+        self.driver.find_element_by_id(id).click()

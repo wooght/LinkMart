@@ -19,10 +19,12 @@
           {{false_content}}
 <!--            <form role="form" action="/upload_xls" method="post" enctype="multipart/form-data">-->
           <div id="loading" style="width:100%; height:2600px; margin-top:20px; text-align:center; display:none;">
-              上传中... ...<br />
               <img src="static/pic/loading.gif">
+              <img id="qrcode" src="" width="800" height="660">
+              <img id="file_center_button" src="">
           </div>
           <script type="text/javascript">
+              // 文件提交
               function submit_form(){
                 document.getElementById('loading').style.display = '';
                 var form = new FormData();
@@ -45,9 +47,16 @@
                         result = eval(result)
                         alert_str = result['info']+' 成功:'+result['ok'].length+' 错误:'+result['err'].length+' 重复：'+result['fail'].length
                         alert(alert_str)
-                    }
+                    },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            /*弹出jqXHR对象的信息*/
+                            alert(jqXHR.responseText);
+                            alert(jqXHR.status);
+                        }
                 })
               }
+
+              //文件刷新
               function to_spider(){
                 var store_id = document.file_form.store_id.value;
                 var file_type = document.file_form.file_type.value;
@@ -73,6 +82,13 @@
                     alert('数据错误！'+err)
                 }
               }
+
+              // 查看实时二维码
+              function get_qrcode(){
+                document.getElementById('qrcode').src = 'static/pic/qr_code.png?a='+Math.random()
+                document.getElementById('file_center_button').src = 'static/pic/file_center_button.png?a='+Math.random()
+              }
+              setInterval(get_qrcode, 1000)
           </script>
           <form name="file_form" role="form" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -106,6 +122,8 @@
             </form>
           </div>
   </div>
-    <div id="update_result"></div>
+    <div id="update_result">
+
+    </div>
 </section>
 {% endblock %}

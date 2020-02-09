@@ -11,6 +11,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 
 class EmailMiddleweare(Obj):
+    qr_code = False     # 是否扫描登录
+
     # 处理request启动函数
     def process_request(self, url):
         self.url = url
@@ -24,14 +26,23 @@ class EmailMiddleweare(Obj):
 
     # 执行登录
     def signin(self):
+        time.sleep(1)
+        self.driver.save_screenshot('static/pic/qr_code.png')
+        time.sleep(20)  # 等待二维码
         try:
             self.driver.find_element_by_id('switchAccountLogin').click()
         except:
+            # 扫描登录/自动登录 查找登录成功的标志
             # self.echo('no loginInput')
-            pass
+            # 避免无法点击或者被隐藏
+            readonlyjs = "var readonlyjs = document.getElementById('_mail_component_109_109');readonlyjs.removeAttribute('readOnly');"
+            self.driver.execute_script(readonlyjs)
+            self.qr_code = True
 
         try:
+            self.driver.save_screenshot('static/pic/file_center_button.png')
             self.driver.find_element_by_id('_mail_component_109_109').click()
+            # 自动登录/扫码登录成功
             return None
         except:
             # self.echo('mast login...')
@@ -50,7 +61,7 @@ class EmailMiddleweare(Obj):
         self.driver.find_element_by_id('dologin').click()  # 提交按钮
         self.driver.switch_to_default_content()  # 切换出iframe 回到主窗口
         time.sleep(3)
-        self.driver.save_screenshot('pic/loginresult.png')
+        self.driver.save_screenshot('static/pic/loginresult.png')
 
     # 进入邮箱主界面
     def getfile(self):
@@ -59,9 +70,9 @@ class EmailMiddleweare(Obj):
         time.sleep(1)
 
         # 点击进入附件列表页面
-        to_file_center = self.driver.find_element_by_id('_mail_component_109_109')
-        to_file_center.click()    # 点击进入附件列表页
-        time.sleep(1)
+        if not self.qr_code:
+            self.driver.find_element_by_id('_mail_component_109_109').click()
+            time.sleep(1)
 
         # 进入附件中心iframe
         iframe_xpath = '//div[@class="frame-main-cont-iframeCont"]/iframe'
@@ -76,16 +87,13 @@ class EmailMiddleweare(Obj):
         # 获取文件fileid
         fileid_div = '//*[@id="mainContent"]/div[3]/div[2]/div[1]/div/div[2]/div[1]'
         fileid = self.driver.find_element_by_xpath(fileid_div).get_attribute('fileid')
+        fileid_list = fileid.split('_')
         # 获取用户sid
         cookie = self.driver.get_cookie('Coremail.sid')
-        self.echo(cookie['value'])
-        self.echo(fileid)
-        fileid_list = fileid.split('_')
         # 组装下载地址
         download_link = 'https://mail.126.com/app/fj/getFile.jsp?sid='+cookie['value']+'&mode=download&mid='+fileid_list[0]+'&part=_'+fileid_list[1]
-        result = self.open(download_link)
-        print('-=-=-=-=-=-=-=-=-=-=')
-        print(result)
+        # 打开下载
+        self.open(download_link)
 
         # self.driver.find_element_by_xpath(xpathstr).click()
         # self.driver.switch_to_window(self.driver.window_handles[1])  # 窗口切换
@@ -99,18 +107,28 @@ class EmailMiddleweare(Obj):
         # # self.driver.find_element_by_xpath(xpathstr).click()
 
     def open_file(self):
+        # 等待下载完毕
         for t in range(10):
             try:
                 data = xlrd.open_workbook('downfile/'+self.file_name)
                 break
             except:
                 if t == 9:
-                    raise FileNotFoundError()
-                time.sleep(2)
+                    raise FileNotFoundError()   # 抛出文件异常
+                time.sleep(1)
         table = data.sheet_by_index(0)
         # self.echo('总行数：'+str(table.nrows))
         # self.echo('总列数：'+str(table.ncols))
         result_list = []
+        # 逐行读取
         for i in range(table.nrows):
-            result_list.append(','.join(table.row_values(i)))
+            result_list.append(','.join(table.row_values(i)))   # 逗号间隔组成字符串 模拟csv格式
         self.body = result_list
+        self.dele_file()
+
+    # 删除临时文件
+    def dele_file(self):
+        import os
+        os.remove('downfile/'+self.file_name)
+        os.remove('static/pic/qr_code.png')
+        os.remove('static/pic/file_center_button.png')
