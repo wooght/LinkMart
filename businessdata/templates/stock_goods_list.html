@@ -37,7 +37,7 @@
         </tr>
         {% for item in goods_list %}
         <tr id="tr_{{item.3}}">
-            <td><a href="/goods_form/{{item.8}}">{{item.1}}<br /> {{item.4}}</a></td>
+            <td><a  name="{{item.4}}" id="{{item.4}}" href="/goods_form/{{item.8}}">{{item.1}}<br /> {{item.4}}</a></td>
             <td>{{item.5}}</td>
             <td><span class="badge bg-blue">{{item.6}}</span></td>
             <td>{% widthratio item.6 1 30 as day%}{{day|floatformat:2}}</td>
@@ -46,4 +46,9 @@
         </tr>
         {% endfor %}
     </table>
+    <script>
+        to_id = window.location.hash
+        $("html,body").animate({scrollTop:$(to_id).offset().top},1000)
+        $(to_id).focus()
+    </script>
 {% endblock %}

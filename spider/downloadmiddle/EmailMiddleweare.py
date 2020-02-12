@@ -28,7 +28,7 @@ class EmailMiddleweare(Obj):
     def signin(self):
         time.sleep(1)
         self.driver.save_screenshot('static/pic/qr_code.png')
-        time.sleep(20)  # 等待二维码
+        time.sleep(2)  # 等待二维码
         try:
             self.driver.find_element_by_id('switchAccountLogin').click()
         except:

@@ -18,9 +18,9 @@
         <div style="font-size:14px;color:#ffffff;width:25%;float:left;background-color:#ff0000;text-align:right;">近30日：{{totle_num_30}}</div>
     </div>
     <div style="border:1px solid red;">
-        <div style="float:left; font-size:18px; text-align:center; width:33%;"><span class="label label-success"><a style="color:#fff;" href='/add_stock/{{goods_code}}/{{store_id}}/1'>ADD进货单</a></div>
-        <div style="float:left; font-size:18px; text-align:center; width:33%;"><span class="label label-success"><a style="color:#fff;" href='/add_stock/{{goods_code}}/{{store_id}}/2'>ADD补货单</a></div>
-        <div style="float:left; font-size:18px; text-align:center; width:33%;"><span class="label label-success add_link_right"><a style="color:#fff;" href='/goods_quality_add/{{goods.id}}'>ADD过期单</a></div>
+        <div style="float:left; font-size:18px; text-align:center; width:33%;"><span class="label label-success"><a id="stock1" style="color:#fff;" href='/add_stock/{{goods_code}}/{{store_id}}/1'>ADD进货单</a></div>
+        <div style="float:left; font-size:18px; text-align:center; width:33%;"><span class="label label-success"><a id="stock2" style="color:#fff;" href='/add_stock/{{goods_code}}/{{store_id}}/2'>ADD补货单</a></div>
+        <div style="float:left; font-size:18px; text-align:center; width:33%;"><span class="label label-success add_link_right"><a id="quality" style="color:#fff;" href='/goods_quality_add/{{goods.id}}'>ADD过期单</a></div>
     </div>
     <table class="table table-hover">
         <tr>
@@ -78,6 +78,22 @@
 
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
+
+        //获取库存状态
+        $.get('/stock_exists/{{goods.id}}',function(data){
+            data = eval(data)
+            if(data.stock==1){
+                $("#stock1").text('进货中..')
+                $("#stock1").attr('href', '/stock_list/1#{{goods_code}}')
+            }else if(data.stock==2){
+                $("#stock2").text('补货中..')
+                $("#stock2").attr('href', '/stock_list/2#{{goods_code}}')
+            }
+            if(data.quality){
+                $("#quality").text('剩余：'+data.quality+"天")
+                $("#quality").attr('href', '/quality_list#{{goods_code}}')
+            }
+        });
     </script>
 </section>
 {% if not info %}

@@ -13,6 +13,7 @@ from common_func.wooght_forms import one_day_date, goods_quality_forms, form_tim
 from common_func.classify_data import classify_data
 import json
 import os
+import pandas as pd
 
 
 # 改变进/补货状态
@@ -39,6 +40,23 @@ def quality_state(request, id):
     else:
         result_str = 'fail'
     return HttpResponse(result_str)
+
+
+# 是否在库存操作表中 进/补/保 单中
+def stock_exists(request, id):
+    is_stock = stock_width_goods.objects.filter(goods_id=id, state=1)
+    is_quality = goods_quality.objects.filter(goods_id=id, state=1)
+    return_dict = {'stock': None, 'quality': None}
+    if is_stock:
+        return_dict['stock'] = is_stock[0].stock_type
+    if is_quality:
+        add_date = is_quality[0].add_date
+        date_nums = is_quality[0].date_nums
+        now_date = one_day_date()
+        loss_date = pd.to_datetime(now_date) - pd.to_datetime(add_date)
+        left_over = date_nums - loss_date.days
+        return_dict['quality'] = left_over
+    return HttpResponse('('+json.dumps(return_dict)+')')
 
 
 @login_required  # 需要登录
