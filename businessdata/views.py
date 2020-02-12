@@ -25,12 +25,12 @@ def index(request):
 
     store_name = store_list.objects.filter(id=store_id)[0].name  # 获取门店名称
     all_data = bs_data.objects.filter(store_id=store_id, date__gte=one_day_date(365)).order_by('date')  # 获取所有数据
-    average_data = []  # 平均数据
-    all_bsd_data = []  # 所有数据
+    average_data = []   # 平均数据
+    all_bsd_data = []   # 所有数据
 
     totle_turnover = 0  # 总营业额
-    totle_gross = 0  # 总毛利
-    i = 0  # 周期计数
+    totle_gross = 0     # 总毛利
+    i = 0               # 周期计数
     # 遍历营业数据
     for item in all_data:
         totle_turnover += item.turnover
@@ -185,20 +185,29 @@ def quality_list(request, store_id=0):
         store_id = int(request.session['store_id'])
 
     return_quality_list = []
-    goods_list = goods_quality.objects.filter(state=1, store_id=store_id)
-    for good in goods_list:
-        form_list = order_form.objects.filter(goods_code=good.goods_code, store_id=store_id,
-                                              form_date__gt=one_day_date(form_time['quality'])).order_by('form_date')
-        good_name = good.goods_id.name
-
-        goods_sales = goods_sales_data(form_list, form_time['quality'], good.add_date)
-        goods_sales.run()
-
-        new_quality = {'goods_name': good_name, 'goods_code': good.goods_code, 'stock_nums': good.stock_nums,
-                       'last_day': good.date_nums - goods_sales.last_day, 'goods_id': good.goods_id,
-                       'totle_num_30': goods_sales.totle_num_30, 'add_date': good.add_date, 'id': good.id}
-        return_quality_list.append(new_quality)
-    return render(request, 'quality_list.html', {'store_id': store_id, 'goods_list': return_quality_list})
+    quality_goods_list = goods_quality.objects.filter(state=1, store_id=store_id)
+    goods_list = []
+    # 商品列表组装    模型 goods_list
+    for stock_good in quality_goods_list:
+        good = the_goods()
+        good.id = stock_good.id
+        good.goods_list_id = stock_good.goods_id.id
+        good.name = stock_good.goods_id.name
+        good.bar_code = stock_good.goods_code
+        good.stock_nums = stock_good.stock_nums
+        good.classify = stock_good.goods_id.classify
+        good.add_date = stock_good.add_date
+        good.date_nums = stock_good.date_nums
+        goods_list.append(good)
+    form_list = order_form.objects.filter(store_id=store_id, form_date__gt=one_day_date(form_time['stock'])).order_by(
+        '-form_date')
+    goods_sales = goods_sales_data(form_list, form_time['stock'])
+    goods_sales.mk_date()
+    goods_sales.classify_screen(goods_list)
+    return_quality_list = goods_sales.run_to_quality()
+    return render(request, 'quality_list.html', {'store_id': store_id,
+                                                 'goods_list': return_quality_list,
+                                                 })
 
 
 # 进货列表
@@ -269,3 +278,5 @@ class the_goods:
     bar_code = None
     stock_nums = None
     classify = None
+    add_date = None
+    date_nums = None

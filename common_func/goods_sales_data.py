@@ -15,11 +15,11 @@ from common_func.wooght_forms import one_day_date
 # 统计日均，近30天
 class goods_sales_data:
     def __init__(self, form_list, start_day, add_date=''):
-        self.date_dict = {}  # 日期：销售数量
+        self.date_dict = {}         # 日期：销售数量
         self.form_list = form_list
         self.start_day = start_day
-        self.day_average = 0  # 日均
-        self.totle_num_30 = 0  # 近30天
+        self.day_average = 0        # 日均
+        self.totle_num_30 = 0       # 近30天
         self.add_date = add_date
 
     # #生成时间轴
@@ -32,6 +32,7 @@ class goods_sales_data:
         for i in date_list:
             self.date_dict[i.strftime('%Y-%m-%d')] = 0
 
+    # ###
     # #运行统计结果->一个图表使用
     # 时间线性组装销量字典 date_dict
     # 计算平均值-> 月均，近30日
@@ -70,6 +71,7 @@ class goods_sales_data:
         else:
             self.day_average = float('%.2f' % (totle_num / count_day.days))
 
+    # ###
     # #多个商品统计
     # 返回商品列表 模型为goods_sales_list[code:sales_data_models,]
     def run_to_list(self):
@@ -86,6 +88,7 @@ class goods_sales_data:
                 sales_data_models['goods_list_id'] = good.goods_list_id
             else:
                 sales_data_models['goods_list_id'] = 0
+
             goods_sales_list[good.bar_code] = sales_data_models
 
         # 遍历订单
@@ -101,6 +104,7 @@ class goods_sales_data:
                     goods_sales_list[code]['min_date'] = now_date
                 if now_date.__ge__(date_30):
                     goods_sales_list[code]['totle_num_30'] += item.goods_num
+
         # pandas 组装
         new_list = []
         for item in goods_sales_list.values():
@@ -116,6 +120,58 @@ class goods_sales_data:
         for item, row in pd_goods_sales.iterrows():
             return_list.append([row['classify'], row['name'], row['totle_num'], row['id'], row['code'], row['stock'],
                                 row['day_average'], row['totle_num_30'], row['goods_list_id']])
+        return return_list
+
+    # ###
+    # #保质销量统计
+    # 返回商品列表 模型为goods_sales_list[code:sales_data_models,]
+    def run_to_quality(self):
+        goods_sales_list = {}  # 返回数据字典 code->sales_data_models
+        min_date = pd.to_datetime(one_day_date())  # 第一次售卖日期
+        date_30 = pd.to_datetime(one_day_date(30))  # 30日起步日期
+        # 初始化数据列表
+        for good in self.goods_list:
+            sales_data_models = dict(id=good.id, name=good.name, code=good.bar_code, stock=good.stock_nums,
+                                     classify=good.classify, day_average=0, totle_num_30=0, add_date=good.add_date,
+                                     totle_num=0, min_date=min_date, after_sales=0, date_nums=good.date_nums)
+            sales_data_models['goods_list_id'] = good.goods_list_id
+            goods_sales_list[good.bar_code] = sales_data_models
+
+        # 遍历订单
+        for item in self.form_list:
+            now_date = item.form_date
+            code = item.goods_code
+            # 添加数量
+            goods_sales_list[code]['totle_num'] += item.goods_num
+            # 如果有销售数据
+            if item.goods_num > 0:
+                # __le__ datetime大小比较之 小于等于/  __ge__ 大于等于/  __eq__ 等于/  __gt__大于/ __ne__等于
+                if now_date.__le__(goods_sales_list[code]['min_date']):
+                    goods_sales_list[code]['min_date'] = now_date
+                if now_date.__ge__(date_30):
+                    goods_sales_list[code]['totle_num_30'] += item.goods_num
+                if now_date.__ge__(goods_sales_list[code]['add_date']):
+                    goods_sales_list[code]['after_sales'] += item.goods_num
+
+        # pandas 组装
+        new_list = []
+        for item in goods_sales_list.values():
+            loss_day = pd.to_datetime(one_day_date()) - pd.to_datetime(item['add_date'])    # 过去天数
+            left_over = item['date_nums'] - loss_day.days                                   # 剩下天数
+            item['left_over'] = left_over
+            count_day = pd.to_datetime(one_day_date()) - pd.to_datetime(item['min_date'])
+            if count_day.days > 0:
+                item['day_average'] = float('%.2f' % (item['totle_num'] / count_day.days))
+            new_list.append(item)
+        pd_goods_sales = pd.DataFrame(new_list)
+        # 按照30日销量排序
+        if len(pd_goods_sales) > 0:
+            pd_goods_sales.sort_values(by='left_over', ascending=True, inplace=True)
+        return_list = []
+        for item, row in pd_goods_sales.iterrows():
+            return_list.append([row['classify'], row['name'], row['totle_num'], row['id'], row['code'], row['stock'],
+                                row['day_average'], row['totle_num_30'], row['goods_list_id'],
+                                row['add_date'], row['left_over'], row['after_sales']])
         return return_list
 
     # #订单筛选
