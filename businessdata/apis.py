@@ -104,7 +104,7 @@ def data_update(request, store_id, up_type):
     spider = email_spider()
     qr_code = False
     # 传递扫码登录判断
-    if is_qrcode == str(1):
+    if int(is_qrcode) == 1:
         qr_code = True
     spider.run(qr_code)
     body = spider.body

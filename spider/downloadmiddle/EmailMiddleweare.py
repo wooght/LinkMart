@@ -75,7 +75,7 @@ class EmailMiddleweare(Obj):
 
         # 点击进入附件列表页面
         if not self.qr_code:
-            self.driver.find_element_by_id('_mail_component_109_109').click()
+            self.driver.find_element_by_id('_mail_component_104_104').click()
             time.sleep(1)
 
         # 进入附件中心iframe
