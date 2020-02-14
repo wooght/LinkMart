@@ -19,8 +19,8 @@
           {{false_content}}
 <!--            <form role="form" action="/upload_xls" method="post" enctype="multipart/form-data">-->
           <div id="loading" style="width:100%; height:2600px; margin-top:20px; text-align:center; display:none;">
-              <img src="static/pic/loading.gif">
-              <img id="qrcode" src="" width="800" height="660">
+              <img src="static/pic/loading.gif"><br />
+              <img id="qrcode" src="" width="800" height="660"><br />
               <img id="file_center_button" src="">
           </div>
           <script type="text/javascript">
@@ -60,10 +60,11 @@
               function to_spider(){
                 var store_id = document.file_form.store_id.value;
                 var file_type = document.file_form.file_type.value;
+                var is_qrcode = document.file_form.is_qrcode.value;
                 document.getElementById('loading').style.display = '';
                 try{
                     $.ajax({
-                        url:'data_update/'+store_id+'/'+file_type,
+                        url:'data_update/'+store_id+'/'+file_type+"?is_qrcode="+is_qrcode,
                         type:'GET',
                         success:function(result){
                             document.getElementById('loading').style.display = 'none';
@@ -117,7 +118,7 @@
               </div>
               <div class="box-footer">
                 <button type="button" onclick="submit_form()" class="btn btn-primary">保存</button>
-                <button type="button" onclick="to_spider()" class="btn btn-primary">更新</button>
+                  <select name="is_qrcode"><option value="1">扫码登录</option><option value="2">自动登录</option></select><button type="button" onclick="to_spider()" class="btn btn-primary">更新</button>
               </div>
             </form>
           </div>

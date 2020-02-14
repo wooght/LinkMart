@@ -12,7 +12,10 @@ class email_spider:
     start_url = 'http://126.com'
     middleweare = EmailMiddleweare()
 
-    def run(self):
+    def run(self, qr_code):
+        if qr_code:
+            self.middleweare.qr_code = True
+            print(qr_code,'================================')
         self.middleweare.process_request(self.start_url)
         self.body = self.middleweare.body
 

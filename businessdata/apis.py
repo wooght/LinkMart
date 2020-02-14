@@ -99,9 +99,14 @@ def upload_xls(request):
 def data_update(request, store_id, up_type):
     from spider.email_spider import email_spider
 
+    is_qrcode = request.GET['is_qrcode']
     return_content = {'ok': [], 'fail': [], 'info': 'on file', 'err': []}
     spider = email_spider()
-    spider.run()
+    qr_code = False
+    # 传递扫码登录判断
+    if is_qrcode == str(1):
+        qr_code = True
+    spider.run(qr_code)
     body = spider.body
     if up_type == 'turnover':
         return_content = save_turnover(store_id, body)
