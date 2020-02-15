@@ -14,8 +14,10 @@
         <div style="text-align:center;"><img src="static/pic/loading.gif"></div>
     </div>
     <div style="width:100%; height:18px; font-size:12px; border:1px solid red; color:#fff; background:red;">
+        <span style="float:left; display:block; width:45%;">成本：<b id="cost"></b> </span>
         <span style="float:left; display:block;">日均：<b id="day"></b></span>
         <span style="float:right; display:block;">近30日：<b id="month"></b></span>
+
     </div>
     <table class="table table-hover" id="goods_list">
         <tr>
@@ -47,6 +49,7 @@
             all_goods = all_data.goods_sales_list;
             $('#day').text(all_data.day_average);
             $('#month').text(all_data.totle_num_30);
+            $('#cost').text(all_data.cost);
             // 基于小时数据图标
             // 基于准备好的dom，初始化echarts实例
             var myChart = echarts.init(document.getElementById('main'));

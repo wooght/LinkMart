@@ -157,18 +157,20 @@ def save_goods(store_id, data_list):
                 goods = is_exists[0]
                 goods.stock_nums = items[7]
                 goods.classify = items[3]
+                goods.cost = float(items[5])  # 成本
                 goods.save()
                 return_content['fail'].append(goods_name)
             else:
                 bar_code = items[0]  # 条码
                 qgp = items[8]  # 保质期
                 classify = items[3]  # 分类
-                stock_nums = items[7]
+                stock_nums = items[7]   # 库存
+                cost = float(items[5])     # 成本
                 if not qgp:
                     qgp = 0
                 id = store_list.objects.filter(id=store_id)[0]
                 to_save = goods_list(name=goods_name, bar_code=bar_code, qgp=qgp, store_id=id,
-                                     stock_nums=stock_nums, classify=classify)
+                                     stock_nums=stock_nums, classify=classify, cost=cost)
                 to_save.save()
                 return_content['ok'].append(store_id)
         except Exception as e:
@@ -310,8 +312,12 @@ def one_classify_sales(request, classify='默认分类'):
     goods_sales.classify_screen(all_goods)  # 订单筛选
     goods_sales.run()
     goods_sales_list = goods_sales.run_to_list()    # 每个商品的销售概况
+    all_cost = 0
+    for good in all_goods:
+        all_cost += good.cost * good.stock_nums
 
     return_dict = {}
+    return_dict['cost'] = all_cost
     return_dict['date_dict'] = goods_sales.date_dict
     return_dict['day_average'] = goods_sales.day_average
     return_dict['totle_num_30'] = goods_sales.totle_num_30

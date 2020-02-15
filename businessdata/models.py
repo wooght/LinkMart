@@ -67,6 +67,7 @@ class goods_list(models.Model):
     name = models.CharField(null=False, max_length=64)  # 名称
     bar_code = models.CharField(null=False, db_index=True, max_length=32)  # 条码
     classify = models.CharField(max_length=32)   # 分类
+    cost = models.FloatField()  # 成本
     stock_nums = models.IntegerField()  # 库存
     store_id = models.ForeignKey(store_list, on_delete=models.CASCADE, db_column='store_id')  # 门店ID
     qgp = models.IntegerField(default=0)     # quality guarantee period 保质期
