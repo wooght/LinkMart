@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from businessdata.models import store_list, bs_data, goods_list, order_form, stock_width_goods, goods_quality
 from common_func.wooght_forms import store_forms, file_type, one_day_date, goods_quality_forms, form_time
-from common_func.goods_sales_data import goods_sales_data, day_sales_data, week_sales_data
+from common_func.goods_sales_data import goods_sales_data, day_sales_data, week_sales_data, month_average_data
 from common_func.str_replace import str_replace
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -24,21 +24,21 @@ def index(request):
             store_id = request.session['store_id']
 
     store_name = store_list.objects.filter(id=store_id)[0].name  # 获取门店名称
-    all_data = bs_data.objects.filter(store_id=store_id, date__gte=one_day_date(365)).order_by('date')  # 获取所有数据
+    all_data = bs_data.objects.filter(store_id=store_id, date__gte=one_day_date(720)).order_by('date')  # 获取所有数据
     average_data = []   # 平均数据
     all_bsd_data = []   # 所有数据
 
     totle_turnover = 0  # 总营业额
     totle_gross = 0     # 总毛利
     i = 0               # 周期计数
+    cycle = 30  # 品均值计算周期
     # 遍历营业数据
     for item in all_data:
         totle_turnover += item.turnover
         totle_gross += item.gross_profit
-        cycle = 30  # 品均值计算周期
         all_bsd_data.append(item.turnover)
         if i < cycle:
-            average_data.append(0)
+            average_data.append(item.turnover)
         else:
             now_average = sum(all_bsd_data[i - cycle:i]) / cycle  # 平均值
             average_data.append(now_average)
@@ -46,13 +46,15 @@ def index(request):
 
     # 获取一周数据
     week_money = week_sales_data(all_data)
+    month_average = month_average_data(all_data)
 
     return render(request, 'index.html', {'all_data': all_data,
                                           'store_id': int(store_id), 'store_name': store_name,
                                           'average': str(average_data),
                                           'totle_turnover': totle_turnover,
                                           'totle_gross': totle_gross,
-                                          'week_money': week_money})
+                                          'week_money': week_money,
+                                          'month_average': month_average})
 
 
 # 分类数据展示

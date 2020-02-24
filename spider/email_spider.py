@@ -15,7 +15,6 @@ class email_spider:
     def run(self, qr_code):
         if qr_code:
             self.middleweare.qr_code = True
-            print(qr_code,'================================')
         self.middleweare.process_request(self.start_url)
         self.body = self.middleweare.body
 

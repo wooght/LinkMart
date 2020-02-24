@@ -51,7 +51,7 @@
             },
             tooltip: {},
             legend: {
-                data:['营业额','平均值'],
+                data:['营业额','平均值','月均线'],
                 right:0,
             },
             xAxis: {
@@ -75,6 +75,11 @@
                     name: '平均值',
                     type: 'line',
                     data: {{average}}
+                },{
+                    name: '月均线',
+                    type: 'line',
+                    data: {{month_average}},
+                    color: '#333333',
                 }]
         };
 

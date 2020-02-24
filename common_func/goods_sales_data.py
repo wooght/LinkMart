@@ -221,3 +221,36 @@ def week_sales_data(all_data):
         week_sales[this_weekday] += day.turnover
 
     return week_sales
+
+
+# 每月平均值序列
+def month_average_data(all_data):
+    result_list = []
+    year_month = {}
+    last_keys = 0
+    month_totle = 0
+    length = len(all_data)
+    i = 0
+    for day in all_data:
+        i += 1              # 计数
+        date = day.date
+        pd_monthday = pd.to_datetime(date)
+        month_keys = str(pd_monthday.year)+'_'+str(pd_monthday.month)
+        # 初始化
+        if i==1:
+            last_keys = month_keys
+            year_month[month_keys] = []
+        # 月份交替
+        if (month_keys != last_keys) or (i==length):
+            # 一月有多少天，就得到多少个相同值的序列
+            month_average = float('%.2f'%(month_totle/len(year_month[last_keys])))
+            for month_day in year_month[last_keys]:
+                result_list.append(month_average)
+            # 新月 计算数据清零
+            year_month[month_keys] = []
+            last_keys = month_keys
+            month_totle = 0
+        month_totle += day.turnover
+        year_month[month_keys].append(month_totle)
+
+    return result_list
