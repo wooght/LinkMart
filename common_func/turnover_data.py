@@ -9,7 +9,7 @@
 # 返回周数据，月数据
 # 返回毛利数据
 import pandas as pd
-
+from common_func.wooght_forms import one_day_date
 
 class turnover_data:
     def __init__(self, all_data):
@@ -22,13 +22,17 @@ class turnover_data:
     def week_sales(self):
         weeks = range(1, 8)
         week_sales = {}
+        last_day = pd.to_datetime(self.data[len(self.data)-1].date)
         for i in weeks:
             week_sales[i] = 0
         for day in self.data:
             date = day.date
             pd_weekday = pd.to_datetime(date)
-            this_weekday = pd_weekday.weekday() + 1  # 0指星期一
-            week_sales[this_weekday] += day.turnover
+            cha_day = last_day - pd_weekday
+            if cha_day.days <= 56:
+                print(pd_weekday)
+                this_weekday = pd_weekday.weekday() + 1  # 0指星期一
+                week_sales[this_weekday] += day.turnover
 
         self.week_sales_data = week_sales
 
