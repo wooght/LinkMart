@@ -24,7 +24,8 @@
         </div>
     </form>
 
-    <div id="main" style="width:100%;height:500px; border:1px solid red;"></div>
+    <div id="main" style="width:100%;height:500px; border:1px solid red;float:left;"></div>
+    <div id="gross" style="width:100%; height:500px; border:1px solid blue;float:left;"></div>
     <div style="font-size:14px; border:1px solid red;">
         统计总天数：{{all_data.count}} 总营业额：{{totle_turnover|floatformat:'2'}} 总毛利：{{totle_gross|floatformat:'2'}}<br />
         营业额总平均：{% widthratio totle_turnover all_data.count 1 %}<br />
@@ -34,6 +35,13 @@
     <div id="main_hours" style="width:100%;height:500px; border:1px solid red;"></div>
     <div id="main_weeks" style="width:100%;height:500px; border:1px solid red;"></div>
     <script type="text/javascript">
+        window_width = document.body.clientWidth
+        main_box = document.getElementById("main")
+        gross_box = document.getElementById("gross")
+        if(window_width>1000){
+            main_box.style.width = "50%";
+            gross_box.style.width = "50%";
+        }
         // 选项监听
         form = document.getElementById('select_form')
         function changeForm(){
@@ -41,10 +49,10 @@
             form.submit();
         }
         {% if user.admin_type == 1 %}
-        // 基于准备好的dom，初始化echarts实例
+
+        // 营业数据
         var myChart = echarts.init(document.getElementById('main'));
 
-        // 指定图表的配置项和数据
         var option = {
             title: {
                 text: '[{{store_name}}]营业趋势'
@@ -82,17 +90,45 @@
                     color: '#333333',
                 }]
         };
-
-        // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
+
+
+        // 毛利额月比较图
+        var grossChart = echarts.init(document.getElementById('gross'));
+        // 指定图表的配置项和数据
+        var option = {
+            title: {
+                text: '[{{store_name}}]毛利额-月'
+            },
+            tooltip: {},
+            legend: {
+                data:['毛利额'],
+                right:0,
+            },
+            xAxis: {
+                data: [
+                  {% for key, value in month_gross.items %}
+                    '{{key}}',
+                  {% endfor %}
+                ]
+            },
+            yAxis: {},
+            series: [{
+                name: '营业额',
+                type: 'bar',
+                data: [
+                  {% for key, value in month_gross.items %}
+                    {{value}},
+                    {% endfor %}
+                ]
+                },]
+        };
+        grossChart.setOption(option);
         {% endif %}
 
 
         // 基于一周数据图标
-        // 基于准备好的dom，初始化echarts实例
         var myChart = echarts.init(document.getElementById('main_weeks'));
-
-        // 指定图表的配置项和数据
         var option = {
             title: {
                 text: '[{{store_name}}]一周营业趋势'
@@ -120,10 +156,11 @@
                 ]
                 },]
         };
-        // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
 
 
+
+        // 获取一天24小时销售情况
         $.get('/day_sales_trend',function(data){
             all_data = eval(data)
             time_data = []
@@ -133,10 +170,8 @@
                 nums_data.push(all_data[i][1])
             }
             // 基于小时数据图标
-            // 基于准备好的dom，初始化echarts实例
             var myChart = echarts.init(document.getElementById('main_hours'));
 
-            // 指定图表的配置项和数据
             var option = {
                 title: {
                     text: '[{{store_name}}]24小时营业趋势'
@@ -156,8 +191,6 @@
                     data: nums_data
                     },]
             };
-
-            // 使用刚指定的配置项和数据显示图表。
             myChart.setOption(option);
         });
     </script>

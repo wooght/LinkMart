@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from businessdata.models import store_list, bs_data, goods_list, order_form, stock_width_goods, goods_quality
 from common_func.wooght_forms import store_forms, file_type, one_day_date, goods_quality_forms, form_time
 from common_func.goods_sales_data import goods_sales_data, day_sales_data, week_sales_data, month_average_data
+from common_func.turnover_data import turnover_data
 from common_func.str_replace import str_replace
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -31,21 +32,28 @@ def index(request):
     totle_turnover = 0  # 总营业额
     totle_gross = 0     # 总毛利
     i = 0               # 周期计数
-    cycle = 30  # 品均值计算周期
+    cycle = 30          # 品均值计算周期
+
     # 遍历营业数据
     for item in all_data:
+        i+=1
         totle_turnover += item.turnover
         totle_gross += item.gross_profit
         all_bsd_data.append(item.turnover)
         if i < cycle:
-            average_data.append(item.turnover)
+            average_data.append(totle_turnover/i)
         else:
             now_average = sum(all_bsd_data[i - cycle:i]) / cycle  # 平均值
             average_data.append(now_average)
-        i += 1
 
+    # 营业数据处理
+    business_data = turnover_data(all_data)
+    business_data.week_sales()
+    business_data.turnover_month_average()
+    business_data.gross_month_total()
     # 获取一周数据
     week_money = week_sales_data(all_data)
+    # 获取每月平均值
     month_average = month_average_data(all_data)
 
     return render(request, 'index.html', {'all_data': all_data,
@@ -53,8 +61,9 @@ def index(request):
                                           'average': str(average_data),
                                           'totle_turnover': totle_turnover,
                                           'totle_gross': totle_gross,
-                                          'week_money': week_money,
-                                          'month_average': month_average})
+                                          'week_money': business_data.week_sales_data,
+                                          'month_average': business_data.turnover_month_average_data,
+                                          'month_gross':business_data.gross_month_total_data})
 
 
 # 分类数据展示
