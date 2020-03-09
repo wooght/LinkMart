@@ -29,8 +29,7 @@ class turnover_data:
             date = day.date
             pd_weekday = pd.to_datetime(date)
             cha_day = last_day - pd_weekday
-            if cha_day.days <= 56:
-                print(pd_weekday)
+            if cha_day.days < 56:
                 this_weekday = pd_weekday.weekday() + 1  # 0指星期一
                 week_sales[this_weekday] += day.turnover
 
