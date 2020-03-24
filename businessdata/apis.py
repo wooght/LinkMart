@@ -284,6 +284,18 @@ def classify_sales_ratio(request):
     return HttpResponse('(' + json.dumps(return_dict) + ')')
 
 
+# 烟，水占比 时间序列
+def smoke_water_ratio(request):
+    # 获取所有商品数据
+    all_goods = goods_list.objects.filter(store_id=request.session['store_id'])
+    # 获取销售数据
+    all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(365))  # 最近一年
+    class_data = classify_data(all_goods, all_forms)
+    sales_list_data = class_data.get_ratio_list()
+    return_dict = sorted(sales_list_data.items(), key=lambda x:x[0], reverse=True)
+    return HttpResponse('('+json.dumps(sales_list_data)+')')
+
+
 # function  某类销售趋势
 # function  某搜索相关内容销售趋势
 # api_json  dict->[datelist,day_average,totle_num_30,goods_list]

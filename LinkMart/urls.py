@@ -29,6 +29,7 @@ urlpatterns = [
     path('quality_state/<int:id>', api.quality_state),                      # 改变保质状态
     path('day_sales_trend', api.day_sales_trend),                           # 获一天24小时数据趋势
     path('classify_sales_ratio', api.classify_sales_ratio),                 # 获取类别比例
+    path('smoke_water_ratio', api.smoke_water_ratio),                       # 烟，水占比
     path('one_classify_sales', api.one_classify_sales),                     # 某类别销量情况
     path('data_update/<int:store_id>/<str:up_type>', api.data_update),      # 通过爬虫更新数据
     path('stock_exists/<int:id>', api.stock_exists),                        # 询问库存状态
