@@ -33,6 +33,7 @@ urlpatterns = [
     path('one_classify_sales', api.one_classify_sales),                     # 某类别销量情况
     path('data_update/<int:store_id>/<str:up_type>', api.data_update),      # 通过爬虫更新数据
     path('stock_exists/<int:id>', api.stock_exists),                        # 询问库存状态
+    path('totle_forms', api.totle_forms),                                   # 单数及单价
 
     # 登录
     path('login', login_view.login),

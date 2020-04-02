@@ -44,8 +44,9 @@
         $.get('/one_classify_sales?classify={{request.GET.classify}}',function(data){
         {%endif%}
             all_data = eval(data)
-            all_date = Object.keys(all_data.date_dict)
-            all_nums = Object.values(all_data.date_dict)
+            all_date = Object.keys(all_data.date_dict) //获取键值
+            all_nums = Object.values(all_data.date_dict)  // 获取值
+            month_average = all_data.month_data_list
             all_goods = all_data.goods_sales_list;
             $('#day').text(all_data.day_average);
             $('#month').text(all_data.totle_num_30);
@@ -61,7 +62,7 @@
                 },
                 tooltip: {},
                 legend: {
-                    data:['营业量'],
+                    data:['营业量','月均值'],
                     right:0,
                 },
                 xAxis: {
@@ -72,7 +73,12 @@
                     name: '营业量',
                     type: 'bar',
                     data: all_nums
-                    },]
+                    },
+                    {
+                    name: '月均值',
+                    type: 'line',
+                    data: month_average
+                    }]
             };
 
             // 使用刚指定的配置项和数据显示图表。

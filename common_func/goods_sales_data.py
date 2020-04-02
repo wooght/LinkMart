@@ -51,12 +51,15 @@ class goods_sales_data:
         totle_num = 0
 
         # 遍历订单列表
+        # 按日期统计销售数量
         for item in self.form_list:
             now_date = item.form_date
             # 相同日期 数量累加
             self.date_dict[now_date.strftime('%Y-%m-%d')] += item.goods_num
             # 总数量累加
             totle_num += item.goods_num
+            # 判断开始售卖日期
+            # 判断是否近30日销售
             if item.goods_num > 0:
                 # __le__ datetime大小比较之 小于等于/  __ge__ 大于等于/  __eq__ 等于/  __gt__大于/ __ne__等于
                 if now_date.__le__(min_date):
@@ -65,11 +68,14 @@ class goods_sales_data:
                     self.totle_num_30 += item.goods_num
         # 计算售卖天数
         count_day = pd.to_datetime(one_day_date()) - pd.to_datetime(min_date)
-        # 避免0的情况报错
+        # 计算日均-》避免0的情况报错
         if count_day.days == 0:
             self.day_average = 0
         else:
             self.day_average = float('%.2f' % (totle_num / count_day.days))
+        # 获取月均序列
+        self.month_data_list = self.month_average_data()
+
 
     # ###
     # #多个商品统计
@@ -190,6 +196,38 @@ class goods_sales_data:
             if form.goods_code in goods_to_classify:
                 classify_forms.append(form)
         self.form_list = classify_forms
+
+    # 每月平均值序列
+    def month_average_data(self):
+        result_list = []
+        year_month = {}
+        last_keys = 0
+        month_totle = 0
+        length = len(self.date_dict)
+        i = 0
+        for day, num in self.date_dict.items():
+            i += 1  # 计数
+            date = day
+            pd_monthday = pd.to_datetime(date)
+            month_keys = str(pd_monthday.year) + '_' + str(pd_monthday.month)
+            # 初始化
+            if i == 1:
+                last_keys = month_keys
+                year_month[month_keys] = []
+            # 月份交替
+            if (month_keys != last_keys) or (i == length):
+                # 一月有多少天，就得到多少个相同值的序列
+                month_average = float('%.2f' % (month_totle / len(year_month[last_keys])))
+                for month_day in year_month[last_keys]:
+                    result_list.append(month_average)
+                # 新月 计算数据清零
+                year_month[month_keys] = []
+                last_keys = month_keys
+                month_totle = 0
+            month_totle += num
+            year_month[month_keys].append(month_totle)
+
+        return result_list
 
 
 # 计算一天24小时销售情况

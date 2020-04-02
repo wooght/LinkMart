@@ -334,5 +334,31 @@ def one_classify_sales(request, classify='默认分类'):
     return_dict['day_average'] = goods_sales.day_average
     return_dict['totle_num_30'] = goods_sales.totle_num_30
     return_dict['goods_sales_list'] = goods_sales_list      # goods_list
+    return_dict['month_data_list'] = goods_sales.month_data_list
     return HttpResponse('('+json.dumps(return_dict)+')')
 
+
+# 单数及单价
+def totle_forms(request):
+    all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_money__gt=0).order_by('form_date')
+    num_dict = {}
+    money_dict = {}
+    forms_code = []
+    for i in all_forms:
+        date_key = i.form_date.strftime('%Y-%m-%d')
+        if date_key not in num_dict.keys():
+            num_dict[date_key] = [0,0]
+        num_dict[date_key][0] += 1
+        num_dict[date_key][1] += i.form_money_true
+    return_dict = {}
+    date_list = []
+    num_list = []
+    money_list = []
+    for key, value in num_dict.items():
+        date_list.append(key)
+        num_list.append(value[0])
+        money_list.append(float('%.2f'%(value[1]/value[0])))
+    return_dict['date'] = date_list
+    return_dict['num'] = num_list
+    return_dict['money'] = money_list
+    return HttpResponse('('+json.dumps(return_dict)+')')
