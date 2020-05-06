@@ -39,13 +39,13 @@ class EmailMiddleweare(Obj):
             # 扫描登录/自动登录 查找登录成功的标志
             # self.echo('no loginInput')
             # 避免无法点击或者被隐藏
-            readonlyjs = "var readonlyjs = document.getElementById('_mail_component_104_104');readonlyjs.removeAttribute('readOnly');"
+            readonlyjs = "var readonlyjs = document.getElementById('_mail_component_109_109');readonlyjs.removeAttribute('readOnly');"
             self.driver.execute_script(readonlyjs)
             self.qr_code = True
 
         try:
             self.driver.save_screenshot('static/pic/file_center_button.png')
-            self.driver.find_element_by_id('_mail_component_104_104').click()
+            self.driver.find_element_by_id('_mail_component_109_109').click()
             # 自动登录/扫码登录成功
             return None
         except:
