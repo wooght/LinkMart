@@ -27,11 +27,11 @@ class EmailMiddleweare(Obj):
 
     # 执行登录
     def signin(self):
-        time.sleep(1)
         # 等等扫码登录
         if self.qr_code:
             # 点击二维码登录按钮
             self.driver.find_element_by_id('lbApp').click()
+            time.sleep(2)
             self.driver.save_screenshot('static/pic/qr_code.png')
             time.sleep(18)
         time.sleep(2)  # 等待二维码
@@ -47,8 +47,8 @@ class EmailMiddleweare(Obj):
             self.qr_code = True
 
         try:
-            self.driver.save_screenshot('static/pic/file_center_button.png')
             self.driver.find_element_by_id(self.file_center_id).click()
+            self.driver.save_screenshot('static/pic/file_center_button.png')
             # 自动登录/扫码登录成功
             return None
         except:
@@ -83,9 +83,10 @@ class EmailMiddleweare(Obj):
             self.driver.find_element_by_id(self.file_center_id).click()
             time.sleep(1)
 
-        # 进入附件中心iframe class="frame-main-cont-iframeCont"
+        # 进入附件中心iframe class="frame-main-cont-iframeCont" //*[@id="frmoutlink.OutlinkModule_1"]
         iframe_xpath = '//div[@class="frame-main-cont-iframeCont"]/iframe'
-        annex_url = self.driver.find_element_by_xpath(iframe_xpath).get_attribute('src')
+        # annex_url = self.driver.find_element_by_xpath(iframe_xpath).get_attribute('src')
+        annex_url = self.driver.find_element_by_id(frmoutlink.OutlinkModule_1).get_attribute('src')
         self.open(annex_url)
         time.sleep(1)
 
