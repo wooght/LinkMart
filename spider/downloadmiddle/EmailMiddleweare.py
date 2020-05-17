@@ -17,6 +17,7 @@ class EmailMiddleweare(Obj):
     def process_request(self, url):
         self.url = url
         self.headless = True   # 关闭无头模式
+        self.file_center_id = '_mail_component_109_109'
         self.set_ini()
 
         self.open(self.url)
@@ -27,11 +28,11 @@ class EmailMiddleweare(Obj):
     # 执行登录
     def signin(self):
         time.sleep(1)
-        self.driver.save_screenshot('static/pic/qr_code.png')
         # 等等扫码登录
         if self.qr_code:
             # 点击二维码登录按钮
             self.driver.find_element_by_id('lbApp').click()
+            self.driver.save_screenshot('static/pic/qr_code.png')
             time.sleep(18)
         time.sleep(2)  # 等待二维码
         try:
@@ -41,13 +42,13 @@ class EmailMiddleweare(Obj):
             # 扫描登录/自动登录 查找登录成功的标志
             # self.echo('no loginInput')
             # 避免无法点击或者被隐藏
-            readonlyjs = "var readonlyjs = document.getElementById('_mail_component_109_109');readonlyjs.removeAttribute('readOnly');"
+            readonlyjs = "var readonlyjs = document.getElementById('"+self.file_center_id+"');readonlyjs.removeAttribute('readOnly');"
             self.driver.execute_script(readonlyjs)
             self.qr_code = True
 
         try:
             self.driver.save_screenshot('static/pic/file_center_button.png')
-            self.driver.find_element_by_id('_mail_component_109_109').click()
+            self.driver.find_element_by_id(self.file_center_id).click()
             # 自动登录/扫码登录成功
             return None
         except:
@@ -77,10 +78,12 @@ class EmailMiddleweare(Obj):
 
         # 点击进入附件列表页面
         if not self.qr_code:
-            self.driver.find_element_by_id('_mail_component_109_109').click()
+            readonlyjs = "var readonlyjs = document.getElementById('"+self.file_center_id+"');readonlyjs.removeAttribute('readOnly');"
+            self.driver.execute_script(readonlyjs)
+            self.driver.find_element_by_id(self.file_center_id).click()
             time.sleep(1)
 
-        # 进入附件中心iframe
+        # 进入附件中心iframe class="frame-main-cont-iframeCont"
         iframe_xpath = '//div[@class="frame-main-cont-iframeCont"]/iframe'
         annex_url = self.driver.find_element_by_xpath(iframe_xpath).get_attribute('src')
         self.open(annex_url)
