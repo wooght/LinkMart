@@ -30,6 +30,8 @@ class EmailMiddleweare(Obj):
         self.driver.save_screenshot('static/pic/qr_code.png')
         # 等等扫码登录
         if self.qr_code:
+            # 点击二维码登录按钮
+            self.driver.find_element_by_id('lbApp').click()
             time.sleep(18)
         time.sleep(2)  # 等待二维码
         try:
@@ -75,7 +77,7 @@ class EmailMiddleweare(Obj):
 
         # 点击进入附件列表页面
         if not self.qr_code:
-            self.driver.find_element_by_id('_mail_component_104_104').click()
+            self.driver.find_element_by_id('_mail_component_109_109').click()
             time.sleep(1)
 
         # 进入附件中心iframe
