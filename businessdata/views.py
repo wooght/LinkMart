@@ -51,11 +51,11 @@ def index(request):
     business_data.week_sales()
     business_data.turnover_month_average()
     business_data.gross_month_total()
-    # 获取一周数据
-    week_money = week_sales_data(all_data)
-    # 获取每月平均值
-    month_average = month_average_data(all_data)
-
+    business_data.turnover_month_average_func()
+    # # 获取一周数据
+    # week_money = week_sales_data(all_data)
+    # # 获取每月平均值
+    # month_average = month_average_data(all_data)
     return render(request, 'index.html', {'all_data': all_data,
                                           'store_id': int(store_id), 'store_name': store_name,
                                           'average': str(average_data),
@@ -63,6 +63,7 @@ def index(request):
                                           'totle_gross': totle_gross,
                                           'week_money': business_data.week_sales_data,
                                           'month_average': business_data.turnover_month_average_data,
+                                          'month_average_dict': business_data.turnover_month_average_dict,
                                           'month_gross':business_data.gross_month_total_data})
 
 

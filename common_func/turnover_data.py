@@ -15,6 +15,7 @@ class turnover_data:
     def __init__(self, all_data):
         self.data = all_data                    # 营业数据
         self.turnover_month_average_data = []   # 每月平均值->序列
+        self.turnover_month_average_dict = []   # 每月平均值
         self.gross_month_total_data = {}        # 没月总毛利额
         self.week_sales_data = []               # 周数据
 
@@ -37,7 +38,7 @@ class turnover_data:
 
     # 月毛利额
     def gross_month_total(self):
-        result_dict = {}
+        result_dict = {}    # result_dict[年月]=毛利额
         for day in self.data:
             date = day.date
             the_day = pd.to_datetime(date)
@@ -48,9 +49,11 @@ class turnover_data:
 
         self.gross_month_total_data = result_dict
 
+    # 每月平均值
     # 每月平均值序列
     def turnover_month_average(self):
-        result_list = []
+        result_list = []    # 运行结果1：平均值/日期 的序列
+        result_month_dict = {}  # 运行结果2： 每月平均值字典
         year_month = {}
         last_keys = 0
         month_totle = 0
@@ -69,6 +72,8 @@ class turnover_data:
             if (month_keys != last_keys) or (i==length):
                 # 一月有多少天，就得到多少个相同值的序列
                 month_average = float('%.2f'%(month_totle/len(year_month[last_keys])))
+                result_month_dict[last_keys] = month_average
+                # 一月有多少天，就得到多少个相同值的序列
                 for month_day in year_month[last_keys]:
                     result_list.append(month_average)
                 # 新月 计算数据清零
@@ -79,3 +84,22 @@ class turnover_data:
             year_month[month_keys].append(month_totle)
 
         self.turnover_month_average_data = result_list
+        self.turnover_month_average_dict = result_month_dict
+
+    # 每月涨幅（同比，环比）
+    def turnover_month_average_func(self):
+        result_dict = {}
+        average_list = []
+        i = 0
+        for key, value in self.turnover_month_average_dict.items():
+            average_list.append(value)
+            result_dict[key] = [0, 0, 0]    # [平均值，同比，环比]
+            # 同比 上周期同一个月做对比
+            if i >11:
+                result_dict[key][1] = value/average_list[i-12] - 1
+            # 环比 被周期上一个月作对比
+            if i > 0:
+                result_dict[key][2] = value/average_list[i-1] - 1
+            result_dict[key][0] = value
+            i += 1
+        self.turnover_month_average_dict = result_dict

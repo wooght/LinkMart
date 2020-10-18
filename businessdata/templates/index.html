@@ -26,6 +26,7 @@
 
     <div id="main" style="width:100%;height:500px; border:1px solid red;float:left;"></div>
     <div id="gross" style="width:100%; height:500px; border:1px solid blue;float:left;"></div>
+    <div id="month_average" style="width:100%; height:500px; border:1px solid #000; float:left"></div>
     <div style="font-size:14px; border:1px solid red;">
         统计总天数：{{all_data.count}} 总营业额：{{totle_turnover|floatformat:'2'}} 总毛利：{{totle_gross|floatformat:'2'}}<br />
         营业额总平均：{% widthratio totle_turnover all_data.count 1 %}<br />
@@ -125,6 +126,46 @@
                 },]
         };
         grossChart.setOption(option);
+
+
+        // 月均涨幅图
+        var averageChart = echarts.init(document.getElementById('month_average'));
+        var option = {
+            title: {
+                text: '[{{store_name}}]月均销量涨跌图'
+            },
+            tooltip: {},
+            legend: {
+                data:['环比','同比'],
+                right:0,
+            },
+            xAxis: {
+                data: [
+                  {% for key, value in month_average_dict.items %}
+                    '{{key}}',
+                  {% endfor %}
+                ]
+            },
+            yAxis: {},
+            series: [{
+                name: '同比',
+                type: 'bar',
+                data: [
+                  {% for key, value in month_average_dict.items %}
+                    {{value.1}},
+                    {% endfor %}
+                ]
+                },{
+                name: '环比',
+                type: 'bar',
+                data: [
+                  {% for key, value in month_average_dict.items %}
+                    {{value.2}},
+                    {% endfor %}
+                ]
+                },]
+        };
+        averageChart.setOption(option);
         {% endif %}
 
 

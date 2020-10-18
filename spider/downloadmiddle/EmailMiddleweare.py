@@ -17,7 +17,7 @@ class EmailMiddleweare(Obj):
     def process_request(self, url):
         self.url = url
         self.headless = True   # 关闭无头模式
-        self.file_center_id = '_mail_component_109_109'
+        self.file_center_id = '_mail_component_217_217'
         self.set_ini()
 
         self.open(self.url)
@@ -85,8 +85,8 @@ class EmailMiddleweare(Obj):
 
         # 进入附件中心iframe class="frame-main-cont-iframeCont" //*[@id="frmoutlink.OutlinkModule_1"]
         iframe_xpath = '//div[@class="frame-main-cont-iframeCont"]/iframe'
-        # annex_url = self.driver.find_element_by_xpath(iframe_xpath).get_attribute('src')
-        annex_url = self.driver.find_element_by_id(frmoutlink.OutlinkModule_1).get_attribute('src')
+        annex_url = self.driver.find_element_by_xpath(iframe_xpath).get_attribute('src')
+        # annex_url = self.driver.find_element_by_id(frmoutlink.OutlinkModule_1).get_attribute('src')
         self.open(annex_url)
         time.sleep(1)
 
