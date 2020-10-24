@@ -42,7 +42,9 @@ class classify_data:
 
     # 获取烟，水占比 序列
     def get_ratio_list(self):
-        smoke = ['中烟', '船烟', '外烟']
+        # 包含全部香烟的分类列表
+        smoke = ['中烟', '川烟', '外烟', '整条烟']
+        # 时间序列字典 日期：[总量, 烟量, 水量]
         day_list = {}
         # 遍历订单，获取总数，烟数，水数 列表【总数，烟数，水数】
         for forms in self.forms:
@@ -54,12 +56,18 @@ class classify_data:
             # 烟计量
             # print(self.code_to_classify[forms.goods_code])
             if self.code_to_classify[forms.goods_code] in smoke:
-                day_list[forms.form_date][1] += 1
+                # 整条烟 计量为10
+                if self.code_to_classify[forms.goods_code] == '整条烟':
+                    day_list[forms.form_date][1] += 10
+                else:
+                    day_list[forms.form_date][1] += 1
         smoke_ratio = self.mk_date()
         for key, value in day_list.items():
             smoke_ratio[key.strftime('%Y-%m-%d')] = float('%.2f' % (value[1]/value[0]))
         return smoke_ratio
 
+    ## 组装时间轴
+    # 组装过去一年的时间轴 截止日期是今天
     def mk_date(self):
         # 组装时间轴
         date_list = pd.date_range(start=one_day_date(365), end=one_day_date())
