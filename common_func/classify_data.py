@@ -44,6 +44,7 @@ class classify_data:
     def get_ratio_list(self):
         # 包含全部香烟的分类列表
         smoke = ['中烟', '川烟', '外烟', '整条烟']
+        water = ['饮料']
         # 时间序列字典 日期：[总量, 烟量, 水量]
         day_list = {}
         # 遍历订单，获取总数，烟数，水数 列表【总数，烟数，水数】
@@ -61,9 +62,12 @@ class classify_data:
                     day_list[forms.form_date][1] += 10
                 else:
                     day_list[forms.form_date][1] += 1
+            elif self.code_to_classify[forms.goods_code] in water:
+                day_list[forms.form_date][2] += 1
         smoke_ratio = self.mk_date()
         for key, value in day_list.items():
-            smoke_ratio[key.strftime('%Y-%m-%d')] = float('%.2f' % (value[1]/value[0]))
+            # smoke_ratio[key.strftime('%Y-%m-%d')] = float('%.2f' % (value[1] / value[0]))
+            smoke_ratio[key.strftime('%Y-%m-%d')] = [float('%.2f' % (value[1]/value[0])), float('%.2f' % (value[2]/value[0]))]
         return smoke_ratio
 
     ## 组装时间轴
@@ -75,5 +79,5 @@ class classify_data:
         # 生成时间轴字典
         date_dict = {}
         for i in date_list:
-            date_dict[i.strftime('%Y-%m-%d')] = 0
+            date_dict[i.strftime('%Y-%m-%d')] = [0,0]
         return date_dict

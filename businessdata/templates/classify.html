@@ -9,11 +9,24 @@
 {% block content_body %}
 <section style="margin:auto; padding-top:20px;" class="content container-fluid">
     <script src="static/js/echarts.js"></script>
-    <div id="main_pie" style="width:100%;height:500px; border:1px solid red;"></div>
-    <div id="main_smoke" style="width:100%; height:400px; border:1px solid red;"></div>
-    <div id="main" style="width:100%;height:1200px; border:1px solid red;"></div>
+    <div id="main_pie" style="width:100%;height:500px; border:1px solid red; float:left;"></div>
+    <div id="main" style="width:100%;height:500px; border:1px solid red; float:left;"></div>
+    <div id="main_smoke" style="width:100%; height:400px; border:1px solid red; float:left;"></div>
+    <div id="main_water" style="width:100%; height:400px; border:1px solid red; float:left;"></div>
+
 
     <script type="text/javascript">
+        window_width = document.body.clientWidth
+        pie_box = document.getElementById("main_pie")
+        main_box = document.getElementById("main")
+        smoke_box = document.getElementById("main_smoke")
+        water_box = document.getElementById("main_water")
+        if(window_width>1000){
+            smoke_box.style.width = "50%";
+            water_box.style.width = "50%";
+            pie_box.style.width = "50%";
+            main_box.style.width = "50%";
+        }
     function set_pie(all_data){
         var myChart = echarts.init(document.getElementById('main_pie'));
         classify_data = []
@@ -103,11 +116,11 @@
             },
             tooltip: {},
             legend: {
-                data:['销售额'],
+                data:['营业额'],
                 right:0,
             },
             yAxis: {
-                data: classify_data,
+                data: classify_data.slice(0,10),
                 axisLabel:{
                     interval:0, // 标签没有间隔，及标签全部显示
                 },
@@ -119,7 +132,7 @@
             series: [{
                 name: '营业额',
                 type: 'bar',
-                data: sales_data
+                data: sales_data.slice(0,10)
                 },]
         };
 
@@ -131,8 +144,15 @@
         all_data = eval(data)
         all_date = Object.keys(all_data)
         all_nums = Object.values(all_data)
+        all_smoke=new Array
+        all_water=[]
+        for(key in all_data){
+            all_smoke.push(all_data[key][0])
+            all_water.push(all_data[key][1])
+        }
         var smoke = echarts.init(document.getElementById('main_smoke'));
-        var option = {
+        var water = echarts.init(document.getElementById('main_water'));
+        var smoke_option = {
             title: {
                 text: '香烟占比',
                 textStyle:{
@@ -153,10 +173,35 @@
             series: [{
                 name: '香烟占比',
                 type: 'bar',
-                data: all_nums
+                data: all_smoke
                 }]
         };
-        smoke.setOption(option)
+        var water_option = {
+            title: {
+                text: '饮料占比',
+                textStyle:{
+                    fontSize:14,
+                    color:'#333',
+                },
+            },
+            tooltip: {},
+            legend: {
+                data:['饮料占比'],
+                right:0,
+            },
+            xAxis: {
+                data: all_date,
+                type: 'category',
+            },
+            yAxis: {},
+            series: [{
+                name: '饮料占比',
+                type: 'bar',
+                data: all_water
+                }]
+        };
+        smoke.setOption(smoke_option)
+        water.setOption(water_option)
     });
     </script>
 </section>
