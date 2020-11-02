@@ -120,7 +120,7 @@
                 right:0,
             },
             yAxis: {
-                data: classify_data.slice(0,10),
+                data: classify_data.slice(-15),
                 axisLabel:{
                     interval:0, // 标签没有间隔，及标签全部显示
                 },
@@ -132,7 +132,7 @@
             series: [{
                 name: '营业额',
                 type: 'bar',
-                data: sales_data.slice(0,10)
+                data: sales_data.slice(-15)
                 },]
         };
 
