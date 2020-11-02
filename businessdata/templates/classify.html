@@ -140,6 +140,26 @@
         set_pie(all_data);
 
     });
+//数组求和函数
+function array_sum(arr,sk1,sk2){
+    sum=0
+    for(i=sk1,j=sk2;i<sk2;i++){
+        sum+=arr[i]
+    }
+    return sum;
+}
+// 数组求平均值 并返回数组
+function array_average(arr){
+    average_arr = []
+    for(i=0;i<arr.length;i++){
+       if(i<30){
+            average_arr.push(arr[i])
+       }else{
+            average_arr.push(array_sum(arr,i-30,i)/30)
+       }
+    }
+    return average_arr;
+}
     $.get('/smoke_water_ratio',function(data){
         all_data = eval(data)
         all_date = Object.keys(all_data)
@@ -150,6 +170,8 @@
             all_smoke.push(all_data[key][0])
             all_water.push(all_data[key][1])
         }
+        average_smoke = array_average(all_smoke)
+        average_water = array_average(all_water)
         var smoke = echarts.init(document.getElementById('main_smoke'));
         var water = echarts.init(document.getElementById('main_water'));
         var smoke_option = {
@@ -174,6 +196,10 @@
                 name: '香烟占比',
                 type: 'bar',
                 data: all_smoke
+                },{
+                name: '平均值',
+                type: 'line',
+                data: average_smoke
                 }]
         };
         var water_option = {
@@ -198,6 +224,10 @@
                 name: '饮料占比',
                 type: 'bar',
                 data: all_water
+                },{
+                name: '平均值',
+                type: 'line',
+                data: average_water
                 }]
         };
         smoke.setOption(smoke_option)
