@@ -262,21 +262,37 @@ def save_form(store_id, data_list):
 
 # 一天24小时营业数据 trend 趋势
 def day_sales_trend(request):
-    # 获取小时数据
-    all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(30))  # 最近一月
-    day_money = day_sales_data(all_forms)
-    return_arr = []
-    for day, value in day_money.items():
-        return_arr.append([day, value])
+    # 获取订单数据
+    # 最近一月订单
+    last_month_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(30))  # 最近一月
+    # 去年同期订单
+    same_month_forms = order_form.objects.filter(store_id=request.session['store_id'],
+                                                 form_date__gte=one_day_date(365), form_date__lt=one_day_date(335))
+    last_day_money = day_sales_data(last_month_forms)
+    same_day_money = day_sales_data(same_month_forms)
 
-    return HttpResponse('(' + json.dumps(return_arr) + ')')
+    # 返回数据组装
+    last_month_arr = []
+    same_month_arr = []
+    day_times=[]
+    for times, value in last_day_money.items():
+        day_times.append(times)
+        last_month_arr.append(value)
+    for times, value in same_day_money.items():
+        same_month_arr.append(value)
+    return_dict = {}
+    return_dict['day_times'] = day_times
+    return_dict['last_month'] = last_month_arr
+    return_dict['same_month'] = same_month_arr
+
+    return HttpResponse('(' + json.dumps(return_dict) + ')')
 
 
 # 分类销量对比
 def classify_sales_ratio(request):
     # 获取所有商品数据
     all_goods = goods_list.objects.filter(store_id=request.session['store_id'])
-    # 获取销售数据
+    # 获取订单数据
     all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(90))  # 最近一月
     class_data = classify_data(all_goods, all_forms)
     sales_data = class_data.get_ratio()
@@ -289,7 +305,7 @@ def smoke_water_ratio(request):
     # 获取所有商品数据
     all_goods = goods_list.objects.filter(store_id=request.session['store_id'])
     # 获取销售数据
-    all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(365))  # 最近一年
+    all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(365))  # 最近二年
     class_data = classify_data(all_goods, all_forms)
     sales_list_data = class_data.get_ratio_list()
     return_dict = sorted(sales_list_data.items(), key=lambda x:x[0], reverse=True)
@@ -338,18 +354,23 @@ def one_classify_sales(request, classify='默认分类'):
     return HttpResponse('('+json.dumps(return_dict)+')')
 
 
-# 单数及单价
+# function 订单数及订单单价
+# api_json dict->[时间序列list，订单量list，订单单价list]
 def totle_forms(request):
+    # 获取指定时间范围内订单
     all_forms = order_form.objects.filter(store_id=request.session['store_id'], form_money__gt=0).order_by('form_date')
+
+    # 订单遍历
+    # num_dict 日期:[订单量，订单单价]
     num_dict = {}
-    money_dict = {}
-    forms_code = []
     for i in all_forms:
         date_key = i.form_date.strftime('%Y-%m-%d')
         if date_key not in num_dict.keys():
             num_dict[date_key] = [0,0]
-        num_dict[date_key][0] += 1
-        num_dict[date_key][1] += i.form_money_true
+        num_dict[date_key][0] += 1      # 单量加一
+        num_dict[date_key][1] += i.form_money_true  # 订单价格
+
+    # 返回数据组装
     return_dict = {}
     date_list = []
     num_list = []
@@ -358,7 +379,7 @@ def totle_forms(request):
         date_list.append(key)
         num_list.append(value[0])
         money_list.append(float('%.2f'%(value[1]/value[0])))
-    return_dict['date'] = date_list
-    return_dict['num'] = num_list
-    return_dict['money'] = money_list
+    return_dict['date'] = date_list     # 时间序列
+    return_dict['num'] = num_list       # 订单量
+    return_dict['money'] = money_list   # 订单单价
     return HttpResponse('('+json.dumps(return_dict)+')')

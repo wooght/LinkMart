@@ -203,12 +203,7 @@
         // 获取一天24小时销售情况
         $.get('/day_sales_trend',function(data){
             all_data = eval(data)
-            time_data = []
-            nums_data = []
-            for(i=0;i<all_data.length;i++){
-                time_data.push(all_data[i][0])
-                nums_data.push(all_data[i][1])
-            }
+
             // 基于小时数据图标
             var myChart = echarts.init(document.getElementById('main_hours'));
 
@@ -218,18 +213,22 @@
                 },
                 tooltip: {},
                 legend: {
-                    data:['营业额'],
+                    data:['最近一月','去年同期'],
                     right:0,
                 },
                 xAxis: {
-                    data: time_data
+                    data: all_data.day_times
                 },
                 yAxis: {},
                 series: [{
-                    name: '营业额',
+                    name: '最近一月',
                     type: 'bar',
-                    data: nums_data
-                    },]
+                    data: all_data.last_month
+                    },{
+                    name: '去年同期',
+                    type: 'line',
+                    data: all_data.same_month
+                    }]
             };
             myChart.setOption(option);
         });
