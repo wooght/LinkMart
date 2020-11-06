@@ -264,15 +264,20 @@ def save_form(store_id, data_list):
 def day_sales_trend(request):
     # 获取订单数据
     # 最近一月订单
-    last_month_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(30))  # 最近一月
+    last_month_forms = order_form.objects.filter(store_id=request.session['store_id'], form_date__gte=one_day_date(30)) # 最近一月
+    # 上一月订单
+    first_month_forms = order_form.objects.filter(store_id=request.session['store_id'],
+                                                 form_date__gte=one_day_date(60), form_date__lt=one_day_date(30))
     # 去年同期订单
     same_month_forms = order_form.objects.filter(store_id=request.session['store_id'],
                                                  form_date__gte=one_day_date(365), form_date__lt=one_day_date(335))
     last_day_money = day_sales_data(last_month_forms)
+    first_day_money = day_sales_data(first_month_forms)
     same_day_money = day_sales_data(same_month_forms)
 
     # 返回数据组装
     last_month_arr = []
+    first_month_arr = []
     same_month_arr = []
     day_times=[]
     for times, value in last_day_money.items():
@@ -280,9 +285,12 @@ def day_sales_trend(request):
         last_month_arr.append(value)
     for times, value in same_day_money.items():
         same_month_arr.append(value)
+    for times, value in first_day_money.items():
+        first_month_arr.append(value)
     return_dict = {}
     return_dict['day_times'] = day_times
     return_dict['last_month'] = last_month_arr
+    return_dict['first_month'] = first_month_arr
     return_dict['same_month'] = same_month_arr
 
     return HttpResponse('(' + json.dumps(return_dict) + ')')

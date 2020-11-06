@@ -213,7 +213,7 @@
                 },
                 tooltip: {},
                 legend: {
-                    data:['最近一月','去年同期'],
+                    data:['最近一月','上一月','去年同期'],
                     right:0,
                 },
                 xAxis: {
@@ -227,7 +227,13 @@
                     },{
                     name: '去年同期',
                     type: 'line',
-                    data: all_data.same_month
+                    data: all_data.same_month,
+                    color: 'green'
+                    },{
+                    name: '上一月',
+                    type: 'line',
+                    data: all_data.first_month,
+                    color: 'blue',
                     }]
             };
             myChart.setOption(option);
