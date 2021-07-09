@@ -9,6 +9,7 @@
 {% block content_body %}
 <section style="margin:auto; padding-top:20px;" class="content container-fluid">
     <script src="static/js/echarts.js"></script>
+<!--    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>-->
     {% if user.admin_type == 1 %}
     <form id="select_form" role="form" action="/" method="get" enctype="multipart/form-data">
         <div class="form-group" style="margin-left:10px; font-size:16px; text-align:right;width:100%;">
@@ -58,7 +59,8 @@
 
         var option = {
             title: {
-                text: '[{{store_name}}]营业趋势'
+                text: '[{{store_name}}]营业趋势',
+                subtext:'wooght',
             },
             tooltip: {},
             legend: {
@@ -73,25 +75,44 @@
                 ]
             },
             yAxis: {},
-            series: [{
-                name: '营业额',
-                type: 'bar',
-                data: [
-                  {% for item in all_data %}
-                    {{item.turnover}},
-                    {% endfor %}
-                ]
+            series:[
+                {
+                    name: '营业额',
+                    color: '#c22',
+                    type: 'bar',
+                    data: [
+                        {% for item in all_data %}
+                        {{item.turnover}},
+                        {% endfor %}],
+//                        markArea:{
+//                            itemStyle: {
+//                                color: 'rgba(0, 0, 177, 0.2)'
+//                                },
+//                            data: [
+//                                [{
+//                                    name: '2019',
+//                                    xAxis: '2019年1月1日'
+//                                }, {
+//                                    xAxis: '2020年1月1日'
+//                                }],
+//                            ]
+//                        }
                 },
+
                 {
                     name: '平均值',
                     type: 'line',
-                    data: {{average}}
-                },{
+                    data: {{average}},
+                    color: '#334455',
+                },
+
+                {
                     name: '月均线',
                     type: 'line',
                     data: {{month_average}},
-                    color: '#333333',
-                }]
+                    color: '#112233',
+                },
+            ]
         };
         myChart.setOption(option);
 

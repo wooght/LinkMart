@@ -17,7 +17,7 @@ class EmailMiddleweare(Obj):
     def process_request(self, url):
         self.url = url
         self.headless = True   # 关闭无头模式
-        self.file_center_id = '_mail_component_217_217'
+        self.file_center_id = '_mail_component_226_226'
         self.set_ini()
 
         self.open(self.url)

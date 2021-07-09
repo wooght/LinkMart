@@ -25,7 +25,7 @@ def index(request):
             store_id = request.session['store_id']
 
     store_name = store_list.objects.filter(id=store_id)[0].name  # 获取门店名称
-    all_data = bs_data.objects.filter(store_id=store_id, date__gte=one_day_date(760)).order_by('date')  # 获取所有数据
+    all_data = bs_data.objects.filter(store_id=store_id, date__gte=one_day_date(1060)).order_by('date')  # 获取所有数据
     average_data = []   # 平均数据
     all_bsd_data = []   # 所有数据
 
