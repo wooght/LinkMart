@@ -1,3 +1,5 @@
 */__pycache__
 linkmart_uwsgi.ini
+*.sql
+*.pyc
 

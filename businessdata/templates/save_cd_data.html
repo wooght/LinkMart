@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% block title %}领克便利数据中心{% endblock %}
+{% block header %}
+  <!-- bootstrap datepicker -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
+  <!-- iCheck for checkboxes and radio inputs -->
+  <link rel="stylesheet" href="/static/adminlte/plugins/iCheck/all.css">
+  <!-- Bootstrap Color Picker -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css">
+  <!-- Bootstrap time Picker -->
+  <link rel="stylesheet" href="/static/adminlte/plugins/timepicker/bootstrap-timepicker.min.css">
+{% endblock %}
+{% load common_tags %}
+{% block content_body %}
+<section style="margin:auto; padding-top:10px;" class="content container-fluid">
+    <script src="https://mapopen.bj.bcebos.com/github/BMapGLLib/TrackAnimation/src/TrackAnimation.min.js"></script>
+    <script src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=45EcEdTSLRwAK9HORoMbqHiR2pX6712T"></script>
+    <script src="/static/js/wooght_map.js?v={% wooght_random %}"></script>
+    <div id="map_box" style="overflow:hidden; width:100%; height:800px;">
+
+    </div>
+
+    <form role="form" action="" id="post_form" name="post_form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div id="map_form_box">
+            <div class="col-md-6">
+                <div class="box box-info" style="width:100%">
+                    <h3 class="box-title">添加踩点</h3>
+                    <div class="inputbox">
+                        <label for="">选择门店：</label>
+                        <select onchange="get_store(this.value)" id="areas">
+                            {%for item in areas%}
+                            <option value="{{item.id}}">{{item.area_name}}</option>
+                            {%endfor%}
+                        </select>
+                        <select onchange="get_cd_data(this.value)" name="cd_store_id" id="cd_store_id">
+
+                        </select>
+                        <br />
+                        <div class="input-group date"  style="width:40%; float:left;">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                            <input name="cd_date" type="text" class="form-control pull-right" id="datepicker">
+                        </div>
+                        <div class="input-group">
+                            <input name="cd_stime" type="text" class="form-control timepicker" value="12:00:00">
+                            <div class="input-group-addon">
+                              <i class="fa fa-clock-o"></i>
+                            </div>
+                        </div>
+                        <label for="">对标订单：</label>
+                        <input class="border-blue intinput" name="contrast_orders" type="text">
+                        <label for="">踩点订单</label>
+                        <input class="intinput" name="cd_orders" type="text" id="">
+
+                    </div>
+                    <p class="help-block"></p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="box box-info">
+                    <h3 class="box-title">具体数据</h3>
+                    <div class="inputbox">
+                        <label for="">对标全天：</label>
+                        <input class="border-blue intinput" name="contrast_total_orders" type="text">
+                        <label class="w40">住宅</label>
+                        <input class="intinput" name="home_orders" type="text" id="area_house">
+                        <label class="w40">商业</label>
+                        <input class="intinput" name="business_orders" type="text" id=""><br>
+                        <label class="w40">公寓</label>
+                        <input class="intinput" name="apartment_orders" type="text" id="">
+                        <label class="w40">路人</label>
+                        <input class="intinput" name="road_orders" type="text" id="">
+                    </div>
+                    <p class="help-block"></p>
+                </div>
+            </div>
+            <div class="box-footer">
+                <button type="button" onclick="submit_form()" class="btn btn-primary">提交</button>
+                <input type="reset" name="reset" style="display:none" id="reset_button">
+            </div>
+        </div>
+    </form>
+    <div id="the_cd_time">
+
+    </div>
+    <div class="inputbox" id="data_list">
+
+    </div>
+    <!-- bootstrap datepicker -->
+<script src="/static/adminlte/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<!-- bootstrap color picker -->
+<script src="/static/adminlte/bower_components/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js"></script>
+<!-- bootstrap time picker -->
+<script src="/static/adminlte/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+    <script>
+        //Date picker
+        $('#datepicker').datepicker({
+          autoclose: true
+        })
+        //Timepicker
+
+        // 根据屏幕宽度调整头部报表展示方式
+        window_width = document.body.clientWidth
+        map_box = document.getElementById("map_box")
+        if(window_width<1000){
+            map_box.style.height = "700px";
+        }
+        // 商圈地址
+        area_xy = {
+        {%for item in areas%}
+            {{item.id}}:[{{item.area_x}},{{item.area_y}}],
+        {%endfor%}
+        0:[104.072367,30.663615]}
+        //地图
+        var map = new BMapGL.Map('map_box'); // 创建Map实例
+        map.centerAndZoom(new BMapGL.Point(104.072367,30.663615), 12); // 初始化地图,设置中心点坐标和地图级别
+        map.enableScrollWheelZoom(true); // 开启鼠标滚轮缩放
+        //map.setMapType(BMAP_EARTH_MAP);//卫星地图模式
+        map.addEventListener('rightclick', function (e) {
+            copy_zb(document.getElementById('area_x'),document.getElementById('area_y'),e.latlng.lng,e.latlng.lat)
+            alert('点击位置经纬度：' + e.latlng.lng + ',' + e.latlng.lat);
+        });
+        function map_add_stores(){
+            map.clearOverlays()
+            $.get('get_cd_stores',function(data){
+                all_data = eval(data)
+                stores_list = []
+                for(item of all_data){
+                    stores_list.push({name:item.store_name,point:[item.store_x,item.store_y],price:item.store_orders})
+                }
+                for(item of stores_list){
+                    add_fangjia(map,item.point,item.name,'<b style="color:#f00;">'+item.price+'</b>')
+                }
+            });
+        }
+        map_add_stores()
+        // 踩点列表
+        function get_cd_data(id){
+            $.get('get_cd_data/'+id,function(data){
+                all_data = eval(data)
+                the_cd_list = document.getElementById('data_list')
+                the_cd_list.innerHTML = ''
+                cd_time = []
+                for(key in all_data){
+                    the_item = '<label for="">对标订单：</label><input class="intinput" value="'+all_data[key]['contrast_orders']+'" class="border-blue" name="contrast_orders" type="text" id="">'+
+                        '<label for="">对标全天：</label><input class="intinput" value="'+all_data[key]['contrast_total_orders']+'" class="border-blue" name="contrast_total_orders" type="text" id="">'+
+                        '<label for="">踩点订单量</label><input class="intinput" value="'+all_data[key]['cd_orders']+'" name="cd_orders" type="text" id="">'+
+                        '<label for="">住宅订单</label><input class="intinput" value="'+all_data[key]['home_orders']+'" name="home_orders" type="text" id="area_house">'+
+                        '<label for="">商业订单</label><input class="intinput" value="'+all_data[key]['business_orders']+'" name="business_orders" type="text" id="">'+
+                        '<label for="">公寓订单</label><input class="intinput"  value="'+all_data[key]['apartment_orders']+'" name="apartment_orders" type="text" id="">'+
+                        '<label for="">路人订单</label>'+
+                        '<input class="intinput"  value="'+all_data[key]['road_orders']+'" name="road_orders" type="text" id="">'+
+                        '<u>'+all_data[key]['cd_date']+' '+all_data[key]['cd_stime']+'</u><br />'
+                    the_cd_list.innerHTML += the_item
+                    the_time = all_data[key]['cd_stime']
+                    cd_time.push(the_time[0]+''+the_time[1])
+                }
+                // 显示踩点时间条
+                cd_time_box = document.getElementById('the_cd_time')
+                cd_time_box.innerHTML = ''
+                td_number = '<table width="100%"><tr>'
+                for(i=0;i<24;i++){
+                    if(i<10){
+                        now_str = '0'+i
+                    }else{
+                        now_str = i+''
+                    }
+                    if(cd_time.indexOf(now_str.toString())>=0){
+                        td_number+='<td class="td_red">'+i+'</td>'
+                    }else{
+                        td_number+='<td>'+i+'</td>'
+                    }
+                }
+                td_number+='</tr></table>'
+                cd_time_box.innerHTML = td_number
+            });
+        }
+        // 获取门店列表
+        function get_store(id){
+            document.getElementById('data_list').innerHTML = ''
+            $.get('get_cd_stores/'+id,function(data){
+                all_data = eval(data)
+                the_select = document.getElementById('cd_store_id')
+                the_select.options.length = 0
+                the_select.options.add(new Option('选择门店', 0))
+                for(key in all_data){
+                    the_option = new Option(all_data[key]['name'],all_data[key]['id'])
+                    the_select.add(the_option)
+                }
+            });
+            map.centerAndZoom(new BMapGL.Point(area_xy[id][0],area_xy[id][1]), 17);
+        }
+        get_store(document.getElementById('areas').value)
+
+    </script>
+    <script>
+
+        // 新踩点数据提交
+        function submit_form(){
+            var form = new FormData();
+            var form_content = document.post_form
+            //获取表单中数据
+            form.append('csrfmiddlewaretoken', document.post_form.csrfmiddlewaretoken.value)
+            form.append('cd_store_id', form_content.cd_store_id.value)
+            form.append('contrast_orders', form_content.contrast_orders.value)
+            form.append('contrast_total_orders', form_content.contrast_total_orders.value)
+            form.append('cd_orders',form_content.cd_orders.value)
+            form.append('home_orders',form_content.home_orders.value)
+            form.append('business_orders',form_content.business_orders.value)
+            form.append('apartment_orders',form_content.apartment_orders.value)
+            form.append('road_orders',form_content.road_orders.value)
+            form.append('cd_date',form_content.cd_date.value)
+            form.append('cd_stime',form_content.cd_stime.value)
+            $.ajax({
+                url:'to_save_cd_data',
+                type:'POST',
+                data:form,
+                processData:false,//不处理数据,
+                contentType:false,//是否传递文件
+                success:function(result){
+                    get_cd_data(form_content.cd_store_id.value)
+                    alert(result[0])
+                    document.getElementById('reset_button').click()
+                    document.getElementById('cd_store_id').value = form_content.cd_store_id
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    /*弹出jqXHR对象的信息*/
+                    alert(jqXHR.responseText);
+                    alert(jqXHR.status);
+                }
+            })
+            map_add_stores()
+        }
+    </script>
+</section>
+{% endblock %}

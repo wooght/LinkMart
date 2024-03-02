@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/html">
-<head>
+<head>  {% load common_tags %}
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>{% block title %}Title{% endblock %}</title>
@@ -9,20 +9,16 @@
   <link rel="stylesheet" href="/static/adminlte/bower_components/Ionicons/css/ionicons.min.css">
   <link rel="stylesheet" href="/static/adminlte/dist/css/AdminLTE.min.css">
   <link rel="stylesheet" href="/static/adminlte/dist/css/skins/skin-blue.min.css">
-  <link rel="stylesheet" href="/static/css/wooght.css">
-  <!-- Google Font -->
-  <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
-  <script src="/static/js/_ajax.js"></script>
-  <script src="/static/js/base.js"></script>
-  <!-- jQuery 3 -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+
+  <link rel="stylesheet" href="/static/css/wooght.css?v={% wooght_random %}">
+  <script src="/static/js/_ajax.js?v={% wooght_random %}"></script>
+  <script src="/static/js/base.js?v={% wooght_random %}"></script>
   <script src="/static/adminlte/bower_components/jquery/dist/jquery.min.js"></script>
   <meta name="viewport" content="width=device-width">
   <meta name="viewport" content="width=device-width,initial-scale=0.8">
 </head>
 <body class="hold-transition skin-blue sidebar-mini">
-<!--<script>document.write("屏幕分辨率是"+window.screen.width+"*"+window.screen.height);  </script>-->
-
 <div class="wrapper">
 
   <!--头部状态栏-->
@@ -57,23 +53,16 @@
       {% block content_body %}
       !!!!
       {% endblock %}
-    <!-- /.content -->
   </div>
+  <textarea id="copyTocopy" style="position:fixed; top:-100px;"></textarea>
+  <div id="smailbox" style="display:none; width:100px; height:80px;border:1px solid red; border-top:10px solid red;position:fixed; left:45%; top:45%; text-align:center; background:#fff; padding-top:10px;"></div>
   <!--主题内容结束-->
 
   <!--页脚-->
   {% include 'boot.html' %}
   <!--页脚结束-->
 </div>
-
-<!-- REQUIRED JS SCRIPTS -->
-<!-- Bootstrap 3.3.7 -->
 <script src="/static/adminlte/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-<!-- AdminLTE App -->
 <script src="/static/adminlte/dist/js/adminlte.min.js"></script>
-
-<!-- Optionally, you can add Slimscroll and FastClick plugins.
-     Both of these plugins are recommended to enhance the
-     user experience. -->
 </body>
 </html>

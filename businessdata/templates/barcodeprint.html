@@ -1,0 +1,134 @@
+<html>
+	<head>
+		<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+		<script type="text/javascript" src="/static/js/jquery-barcode.js"></script>
+		<script type="text/javascript" src="/static/js/jquery.PrintArea.js"></script>
+		<style type="text/css">
+			body{
+				margin:1px 2px;
+			}
+			.print-content{
+				height:111px;
+				overflow:hidden;
+			}
+			.codebox{
+				float:left;
+				border:1px solid #000; width:200px;
+				height:117px;
+				overflow:hidden;
+				margin-right:2px;
+			}
+			.printbutton{
+				width:200px;
+				border:1px solid red;
+			}
+		</style>
+	</head>
+	<body>
+	<div style="overflow:hidden;">
+		<!--标准标签-->
+		<div class="codebox">
+		<!--startprint-->
+			<div id="base_code" class="print-content">
+				<img style="margin-left:6px; margin-top:2px; margin-bottom:2px;" src="/static/pic/linklogo.png" width="70" height="14" />
+				<div style="font-size:6px; border-top:1px solid #333; margin-top:1px; margin-bottom:1px;">
+					<div style="font-size:12px; overflow:hidden; display:block; width:100%; height:14px; margin-left:2px;">品 名：<b class="good_name">{{good}}</b></div>
+					<table style="font-size:6px; border:0px solid red;"  cellpadding="0">
+						<tr>
+							<td>单 位：</td>
+							<td width="50" class="good_company">瓶</td>
+							<td>分 类：</td>
+							<td class="classify"></td>
+						</tr>
+						<tr>
+							<td >产 地：</td>
+							<td class="good_place">广东</td>
+							<td></td>
+							<td>零售价</td>
+						</tr>
+					</table>
+				<table cellpadding="0" cellspacing="0"><tr>
+					<td><div id="barcodeTarget" class="barcodeTarget"></div></td>
+					<td style="font-size:22px;" width="55" align="center">¥<b id="good_price">{{good.price}}</b></td>
+				</tr></table>
+				</div>
+			</div>
+		<!--endprint-->
+		</div>
+			<!--烟标签-->
+		<div class="codebox">
+			<!--startprintyan-->
+			<div class="print-content">
+				<img style="margin-left:6px; margin-top:2px; margin-bottom:2px;" src="/static/pic/linklogo.png" width="70" height="14" />
+				<div style="font-size:6px; border-top:1px dashed #333; margin-top:1px; margin-bottom:1px;">
+					<div style="font-size:16px; overflow:hidden; display:block; width:100%; height:20px; margin-left:2px; margin-top:2px;">品 名：<span class="good_name">{{good}}</span></div>
+				<div style=" height:2px;  border-bottom:1px dashed #000;"></div>
+					<div style="margin-left:4px;">单 位：<span class="good_company"></span></div>
+				<table width="100%" cellspacing="0" cellpadding="0"><tr>
+					<td><div id="barcodeTarget_yan" class="barcodeTarget"></div></td>
+					<td style="font-size:6px; border-left:1px dashed #000; line-height:14px; padding-left:1px;">零<br />售<br />价</td>
+					<td style="font-size:34px; text-align:center;" align="center" width="90"><b class="good_price">{{good.price}}</b></td>
+				</tr></table>
+				</div>
+			</div>
+			<!--endprintyan-->
+		</div>
+	</div>
+<!--	<div style="display:block; margin-left:1px;">-->
+<!--		<input class="printbutton" type="button" onclick="doPrint('')" value="标准标签" />-->
+<!--		<input class="printbutton" type="button" onclick="doPrint('yan')" value="标签" />-->
+<!--	</div>-->
+
+	<script>
+	// 控制中心
+	function get_barcode(good_id,bar_style){
+		$.get('/one_good/'+good_id,function(data){
+			//获取数据-》制作条码-》打印标签-》结束
+			the_good = eval(data)
+			$(".good_name").text(the_good.name)
+			$(".good_price").text(the_good.price)
+			$(".good_place").text(the_good.place)
+			$("#good_price").text(parseFloat(the_good.price).toFixed(2))
+			$(".good_company").text(the_good.company)
+			$(".classify").text(the_good.classify)
+			// 制作条码
+			generateBarcode($("#barcodeTarget"),the_good.bar_code)
+			generateBarcode($("#barcodeTarget_yan"),the_good.bar_code)
+			//执行打印
+			doPrint(bar_style)
+		})
+	}
+	// 制作条码
+	function generateBarcode(codedoc, bar_code){
+		var btype = 'ean13';
+		var renderer = 'css';
+		// 配置文件
+		var settings = {
+		  output:renderer,
+		  bgColor: '#FFFFFF',
+		  color: '#000000',
+		  barWidth: 1,
+		  barHeight: 18,
+		  moduleSize: 1,
+		  posX: 0,
+		  posY: 0,
+		  addQuietZone: 1
+		};
+		codedoc.html("").show().barcode(bar_code, btype, settings);
+	}
+	// 执行打印
+	function doPrint(bar_style) {
+		const html = window.document.body.innerHTML;
+		const start = "<!--startprint"+bar_style+"-->"; //开始打印标识字符串有17个字符
+		const end = "<!--endprint"+bar_style+"-->"; //结束打印标识字符串
+		start_length = 17 + bar_style.length
+		let printHtml= html.substring(html.indexOf(start) + start_length); //从开始打印标识之后的内容
+		printHtml = printHtml.substring(0, printHtml.indexOf(end)); //截取开始标识和结束标识之间的内容
+		window.document.body.innerHTML = printHtml; //把需要打印的指定内容赋给body.innerHTML
+		window.print(); //调用浏览器的打印功能打印指定区域
+		window.document.body.innerHTML = html;//重新给页面内容赋值；
+	}
+	</script>
+
+	</body>
+</html>

@@ -7,17 +7,20 @@
 from spider.downloadmiddle.IndexMiddleweare import IndexMiddleweare as Obj
 import time
 import xlrd
+import re
 from selenium.webdriver.support.wait import WebDriverWait
 
 
 class EmailMiddleweare(Obj):
-    qr_code = False     # 是否扫描登录
+    def __init__(self):
+        self.file_center_id = ''
+        self.qr_code = False  # 是否扫描登录
 
-    # 处理request启动函数
+    # 流程控制
     def process_request(self, url):
         self.url = url
         self.headless = True   # 关闭无头模式
-        self.file_center_id = '_mail_component_226_226'
+        self.file_center_id = ''
         self.set_ini()
 
         self.open(self.url)
@@ -27,61 +30,64 @@ class EmailMiddleweare(Obj):
 
     # 执行登录
     def signin(self):
-        # 等等扫码登录
+        # 情况一 扫码登录
+        # 等待人为手机扫码登录
         if self.qr_code:
             # 点击二维码登录按钮
             self.driver.find_element_by_id('lbApp').click()
-            time.sleep(2)
+            time.sleep(3)
+            # 保存扫码页面
             self.driver.save_screenshot('static/pic/qr_code.png')
-            time.sleep(18)
-        time.sleep(2)  # 等待二维码
-        try:
-            # 查找 ‘去登录’ 按钮
-            self.driver.find_element_by_id('switchAccountLogin').click()
-        except:
-            # 扫描登录/自动登录 查找登录成功的标志
-            # self.echo('no loginInput')
-            # 避免无法点击或者被隐藏
-            readonlyjs = "var readonlyjs = document.getElementById('"+self.file_center_id+"');readonlyjs.removeAttribute('readOnly');"
-            self.driver.execute_script(readonlyjs)
-            self.qr_code = True
+            # 供扫码时间 20秒
+            time.sleep(20)
+            try:
+                # 限制登录情况
+                # 查找 ‘去登录’ 按钮
+                self.driver.find_element_by_id('switchAccountLogin').click()
+            except:
+                # 判断扫码登录是否成功
+                try:
+                    self.search_id()
+                    self.driver.find_element_by_id(self.file_center_id).click()
+                    self.driver.save_screenshot('static/pic/file_center_button.png')
+                    # 扫码登录成功
+                    return None
+                except:
+                    # self.echo('mast login...')
+                    pass
+        else:
+            # 账号密码自动登录
+            time.sleep(1)
+            self.driver.switch_to.frame(0)  # 直接switch iframe对象无法访问,采用iframe序列可以访问 ?????
 
-        try:
-            self.driver.find_element_by_id(self.file_center_id).click()
-            self.driver.save_screenshot('static/pic/file_center_button.png')
-            # 自动登录/扫码登录成功
-            return None
-        except:
-            # self.echo('mast login...')
-            pass
+            # 输入登录内容 自动登录
+            part_key = self.driver.find_element_by_name('email')  # 账户输入框
+            password = self.driver.find_element_by_name('password')  # 密码输入框
+            part_key.send_keys('wooght')
+            password.send_keys('wooghtPUWENFENG5')
 
-        time.sleep(2)
-        self.driver.switch_to.frame(0)  # 直接switch iframe对象无法访问,采用iframe序列可以访问 ?????
-
-        # 输入内容
-        part_key = self.driver.find_element_by_name('email')  # 账户输入框
-        password = self.driver.find_element_by_name('password')  # 密码输入框
-        part_key.send_keys('wooght')
-        password.send_keys('wooghtPUWENFENG5')
-
-        # 提交
-        self.driver.find_element_by_id('dologin').click()  # 提交按钮
-        self.driver.switch_to_default_content()  # 切换出iframe 回到主窗口
-        time.sleep(3)
-        self.driver.save_screenshot('static/pic/loginresult.png')
+            # 提交
+            self.driver.find_element_by_id('dologin').click()  # 提交按钮
+            self.driver.switch_to_default_content()  # 切换出iframe 回到主窗口
+            time.sleep(3)
+            # 保存登录结果标志
+            self.driver.save_screenshot('static/pic/loginresult.png')
 
     # 进入邮箱主界面
     def getfile(self):
         # self.echo('to getfile...')
         # 等待页面载入
         time.sleep(1)
+        # print(self.driver.page_source) page_source body内容
 
         # 点击进入附件列表页面
         if not self.qr_code:
+            # 查找邮箱附件按钮ID
+            self.search_id()
             readonlyjs = "var readonlyjs = document.getElementById('"+self.file_center_id+"');readonlyjs.removeAttribute('readOnly');"
             self.driver.execute_script(readonlyjs)
             self.driver.find_element_by_id(self.file_center_id).click()
-            time.sleep(1)
+        time.sleep(1)
 
         # 进入附件中心iframe class="frame-main-cont-iframeCont" //*[@id="frmoutlink.OutlinkModule_1"]
         iframe_xpath = '//div[@class="frame-main-cont-iframeCont"]/iframe'
@@ -92,14 +98,26 @@ class EmailMiddleweare(Obj):
 
         # 点击附件 -> 进入附件下载页面
         # self.echo('enter to file_center...')
-        # 获取文件名
-        self.file_name = self.driver.find_element_by_xpath('//*[@id="mainContent"]/div[3]/div[2]/div[1]/div/div[2]/div[1]/div[2]/span[2]/span[2]').text
-        # 获取文件fileid
+        # 获取文件名 //*[@id="mainContent"]/div[3]/div[2]/div[1]/div/div[2]/div[1]/div[2]/span[2]/span[2]
+        # // *[ @ id = "nav_attach"] / span[2]
+        self.driver.find_element_by_xpath('//*[@id="nav_default"]/span[2]').click()
+        time.sleep(1)
+        self.driver.find_element_by_xpath('//*[@id="nav_attach"]/span[2]').click()
+        time.sleep(1)
+        self.file_name = self.driver.find_element_by_xpath('//*[@id="mainContent"]/div[3]/div[2]/div[1]/div/div['
+                                                           '2]/div[1]/div[2]/span[2]/span[2]').text
+
+        # 获取文件fileid //*[@id="mainContent"]/div[3]/div[2]/div[1]/div/div[2]/div[1]
+        # //*[@id="mainContent"]/div[3]/div[2]/div[1]/div/div[2]/div[1]/div[2]/span[2]/span[2]
+        # https://mail.126.com/app/fj/getFile.jsp?sid=eAEfJTHblYnyGVtiUEbbuVWPYeqbBvhA&mode=download&mid=204:1S2mzBbKvFx5fZTy2gAAsI&part=_1739
         fileid_div = '//*[@id="mainContent"]/div[3]/div[2]/div[1]/div/div[2]/div[1]'
         fileid = self.driver.find_element_by_xpath(fileid_div).get_attribute('fileid')
+        # self.echo('fileid:'+fileid)
         fileid_list = fileid.split('_')
+
         # 获取用户sid
         cookie = self.driver.get_cookie('Coremail.sid')
+
         # 组装下载地址
         download_link = 'https://mail.126.com/app/fj/getFile.jsp?sid='+cookie['value']+'&mode=download&mid='+fileid_list[0]+'&part=_'+fileid_list[1]
         # 打开下载
@@ -116,6 +134,7 @@ class EmailMiddleweare(Obj):
         # click = WebDriverWait(self.driver, 3, 0.2).until(lambda x: x.find_element_by_xpath(xpathstr)).click()
         # # self.driver.find_element_by_xpath(xpathstr).click()
 
+    # 读取下载的文件
     def open_file(self):
         # 等待下载完毕
         for t in range(10):
@@ -139,6 +158,16 @@ class EmailMiddleweare(Obj):
     # 删除临时文件
     def dele_file(self):
         import os
-        os.remove('downfile/'+self.file_name)
-        os.remove('static/pic/qr_code.png')
-        os.remove('static/pic/file_center_button.png')
+        try:
+            os.remove('downfile/'+self.file_name)
+            os.remove('static/pic/qr_code.png')
+            os.remove('static/pic/file_center_button.png')
+            os.remove('static/pic/static/pic/loginresult.png')
+        except:
+            pass
+
+    # 查找邮箱附件对应ID
+    def search_id(self):
+        html = self.driver.page_source      # 运行中的HTML
+        re_result = re.search(r'.*(_mail_component_\d{3}_\d{3}).*\>邮箱附件.*', html, re.M | re.I)
+        self.file_center_id = re_result.group(1)

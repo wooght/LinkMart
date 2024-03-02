@@ -19,15 +19,23 @@
           {{false_content}}
 <!--            <form role="form" action="/upload_xls" method="post" enctype="multipart/form-data">-->
           <div id="loading" style="width:100%; height:2600px; margin-top:20px; text-align:center; display:none;">
-              <img src="static/pic/loading.gif"><br />
-              <img id="qrcode" src="" width="800" height="660"><br />
-              <img id="file_center_button" src="">
+              <img src="static/pic/loading.gif" width="180" height="180"><br />
+              <div id="status" style="font-size:24px; color:red; text-align:left; line-height:32px; color:blue; width:180px; margin:auto; border:0px solid red;">任务启动</div>
           </div>
           <script type="text/javascript">
-                          // 查看实时二维码
+              // 查看实时二维码
+              status_str = '完成'
+              status_html = $("#status").text()
               function get_qrcode(){
-                document.getElementById('qrcode').src = 'static/pic/qr_code.png?a='+Math.random()
-                document.getElementById('file_center_button').src = 'static/pic/file_center_button.png?a='+Math.random()
+                 $.get("/get_status", function(data){
+                    str = eval(data)
+                    console.log(str)
+                    if(status_str != str){
+                        status_html += "(ok)<br />"+str
+                        $("#status").html(status_html+'.....')
+                        status_str = str
+                    }
+                });
               }
 
               // 文件提交
@@ -64,7 +72,7 @@
 
               //文件刷新
               function to_spider(){
-                setInterval(get_qrcode, 1000)
+                wx_status = setInterval(get_qrcode, 2000)
                 var store_id = document.file_form.store_id.value;
                 var file_type = document.file_form.file_type.value;
                 var is_qrcode = document.file_form.is_qrcode.value;
@@ -74,12 +82,14 @@
                         url:'data_update/'+store_id+'/'+file_type+"?is_qrcode="+is_qrcode,
                         type:'GET',
                         success:function(result){
+                            clearInterval(wx_status)
                             document.getElementById('loading').style.display = 'none';
                             result = eval(result)
                             alert_str = result['info']+' 成功:'+result['ok'].length+' 错误:'+result['err'].length+' 重复：'+result['fail'].length
                             alert(alert_str)
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
+                            clearInterval(wx_status)
                             /*弹出jqXHR对象的信息*/
                             alert(jqXHR.responseText);
                             alert(jqXHR.status);
@@ -91,34 +101,40 @@
                 }
               }
           </script>
-          <form name="file_form" role="form" method="post" enctype="multipart/form-data">
+          <form id="file_form" name="file_form" role="form" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
               <div class="box-body">
                 <div class="form-group">
                   <label for="store_select">选择门店：</label>
-                    <select name="store_id">
+                    <select class="btn" name="store_id" disabled="disabled" style="width:120px;">
                         {% for item in stores %}
-                        <option value="{{item.id}}">{{item.name}}</option>
+                        <option {% if item.id == store_id %} selected="selected" {% endif %} value="{{item.id}}">{{item.name}}</option>
                         {% endfor %}
                     </select>
                 </div>
                   <div class="form-group">
                     <label for="store_select">数据类型：</label>
-                        <select name="file_type">
+                        <select class="btn" name="file_type" style="width:120px;">
+                            {%if user.admin_type == 1%}
                             {% for id, item in file_type.items %}
                             <option value="{{id}}">{{item}}</option>
                             {% endfor %}
+                            {%else%}
+                            <option value="goods">商品数据</option>
+                            {%endif%}
                         </select>
                   </div>
+                  {%if user.admin_type == 1%}
                   <div class="form-group">
-                      <label for="exampleInputFile">选择文件</label>
-                      <input name="xls" type="file" id="exampleInputFile">
+                      <label for="exampleInputFile">选择文件:</label>
+                          <span><input class="btn" name="xls" type="file" style="width:100px;display:inline;" id="exampleInputFile"></span>
+                          <span><button type="button" onclick="submit_form()" class="btn btn-primary">文件保存</button></span>
                       <p class="help-block"></p>
                   </div>
+                  {%endif%}
               </div>
               <div class="box-footer">
-                <button type="button" onclick="submit_form()" class="btn btn-primary">保存</button>
-                  <select name="is_qrcode"><option value="1">扫码登录</option><option value="2">自动登录</option></select><button type="button" onclick="to_spider()" class="btn btn-primary">更新</button>
+                  <select name="is_qrcode" class="btn"><option value="1">扫码登录</option><option selected value="2">自动登录</option></select><button type="button" onclick="to_spider()" class="btn btn-primary">更新</button>
               </div>
             </form>
           </div>

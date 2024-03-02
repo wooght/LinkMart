@@ -7,7 +7,7 @@
 .fanye .kuan{padding:0 10px;border:1px solid #e6e6e6; display:block; float: right;line-height:25px; height:25px; width:60px; text-align:center;}
 
 /*
-财经CSS
+财经CSS by wooght 2016
  */
 .font_14{font-size: 14px;}
 .one_top{line-height: 20px; height: 30px;background-color: #fff; padding: 3px; border:1px solid #ddd; border-bottom: 0px; margin-top: -3px; font-weight: bolder;}
@@ -17,4 +17,21 @@
 .add_button{float:left; font-size:18px; text-align:center; width:33%;}
 .float{float:left;}
 
+/*
+LinkMart by wooght 2020
+*/
+#goods_list{border:1px solid red;}
+table{table-layout: fixed;word-break: break-all; word-wrap: break-word;}/*表格固定布局*/
+.first_th{-o-text-overflow:ellipsis;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:55%;} /*超出部分显示省略号*/
 
+/*地图表单box*/
+#map_form_box{table-layout:fixed; overflow:hidden; float:left; width:100%; border:1px solid #333; padding-top:5px; border-radius:20px;}
+#data_list u{color:#999;}
+.border-red{border:1px solid red; width:90px;}
+.border-blue{border:1px solid blue; width:90px;}
+.inputbox{width:100%;}
+.inputbox label{width:70px; text-align:right; margin:5px 0px;}
+.w40{width:40px; text-align:right; margin-top:5px;}
+.intinput{width:50px;}
+#the_cd_time table{border:1px solid #333; text-align:center; font-size:10px;}
+.td_red{background:red; color:#fff;}

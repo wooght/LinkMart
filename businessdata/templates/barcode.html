@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}领克便利数据中心{% endblock %}
+{% block header %}
+
+{% endblock %}
+
+{% block content_body %}
+<section class="content container-fluid" style="background-color:#fff;">
+
+    <table class="table table-hover" id="goods_list">
+        <tr>
+            <th class="first_th">商品名称</th>
+            <th>条码</th>
+            <th>标准标签</th>
+            <th>烟标签</th>
+        </tr>
+        {%for good in goods_list%}
+        <tr>
+            <td class="first_th"><span class="badge bg-red">{{good}}</span></td>
+            <td>{{good.bar_code}}</td>
+            <td><input type="button" onclick="get_function({{good.id}},'')" style="border:1px solid blue;" value="标准标签"></td>
+            <td><input type="button" onclick="get_function({{good.id}},'yan')" style="border:1px solid red;" value="烟价标签"></td>
+            <td></td>
+        </tr>
+        {%endfor%}
+    </table>
+    <iframe id="toprint_html" style="display:none" name="print_iframe" width="1000" height="500" src="/barcode_toprint?good_id=71700"></iframe>
+    <script type="text/javascript">
+        function get_function(good_id,bar_style){
+            the_iframe = document.getElementById("toprint_html")
+            the_iframe.contentWindow.get_barcode(good_id, bar_style)
+        }
+    </script>
+</section>
+{% endblock %}

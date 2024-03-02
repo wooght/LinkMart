@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load common_tags %}
+{% block title %}领克便利数据中心{% endblock %}
+{% block header %}
+    运营数据
+    <small>运营数据分析对比</small>
+{% endblock %}
+
+{% block content_body %}
+<section style="margin:auto; padding-top:20px;" class="content container-fluid">
+    <script src="static/js/echarts.js"></script>
+<!--    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>-->
+    {% if user.admin_type == 1 %}
+    <form id="select_form" role="form" action="/" method="get" enctype="multipart/form-data">
+        <div class="form-group" style="margin-left:10px; font-size:16px; text-align:right;width:100%;">
+
+            <label for="store_id">当前门店</label>
+            <select onchange="gotolaction('/operate?store_id='+this.value)" id="select_store_id" name="store_id">
+                {% all_stores as stores %}
+                {% for item in stores %}
+                <option {% if item.id == store_id %} selected="selected" {% endif %} value="{{item.id}}">{{item.name}}{{store_id}}</option>
+                {% endfor %}
+            </select>
+
+        </div>
+    </form>
+
+    <div id="main" style="width:100%;height:500px; border:1px solid red; float:left;"></div>
+    <div id="gross" style="width:100%; height:500px; border:1px solid blue;float:left;"></div>
+    {% endif %}
+
+    <div id="main_totle_forms" style="width:100%;height:500px; border:1px solid blue;float:left;"></div>
+
+    <div style="float:left;">
+        <div style="border:1px solid red; background:#f00; height:25px;font-size:14px; color:#fff; line-height:25px; padding-left:5px;"> 添加数据</div>
+        <div><style type="text/css">
+            .input_s{width:100%;}
+        </style>
+            <form name="operate_form" role="form" method="post">
+                {% csrf_token %}
+                <table>
+                    <tr>
+                        <td>毛利</td>
+                        <td>收入</td>
+                        <td>房租</td>
+                        <td>工资</td>
+                        <td>社保</td>
+                        <td>水电</td>
+                        <td>美团</td>
+                        <td>开支</td>
+                        <td>报损</td>
+                    </tr><tr>
+                        <td><input class="input_s" type="text" name="profit"></td>
+                        <td><input class="input_s" type="text" name="income"></td>
+                        <td><input class="input_s" type="text" name="rent"></td>
+                        <td><input class="input_s" type="text" name="wages"></td>
+                        <td><input class="input_s" type="text" name="insurance"></td>
+                        <td><input class="input_s" type="text" name="hydropower"></td>
+                        <td><input class="input_s" type="text" name="meituan"></td>
+                        <td><input class="input_s" type="text" name="expenditure"></td>
+                        <td><input class="input_s" type="text" name="loss"></td>
+                    </tr>
+                </table>
+                门店<select id="select_store_id" name="store_id">
+                {% all_stores as stores %}
+                {% for item in stores %}
+                <option {% if item.id == store_id %} selected="selected" {% endif %} value="{{item.id}}">{{item.name}}</option>
+                {% endfor %}
+            </select>年份:<select name="year">
+                {% for y in year_list %}
+                <option value="{{y}}">{{y}}年</option>
+                {%endfor%}
+            </select><select name="month">
+                {% for m in month_list%}
+                <option value="{{m}}">{{m}}月</option>
+                {%endfor%}
+            </select> <input type="button" onclick="submit_form()" value="添加"  class="btn btn-primary">
+            </form>
+        </div>
+    </div>
+    <script type="text/javascript">
+        // 数据提交
+        function submit_form(){
+            var form = new FormData();
+            form_data = document.operate_form;
+            form.append('store_id',document.operate_form.store_id.value);
+            form.append('y_month',parseInt(form_data.year.value+''+form_data.month.value));
+            form.append('profit',parseFloat(form_data.profit.value));
+            form.append('income',parseFloat(form_data.income.value));
+            form.append('wages',parseFloat(form_data.wages.value));
+            form.append('insurance',parseFloat(form_data.insurance.value));
+            form.append('meituan',parseFloat(form_data.meituan.value));
+            form.append('rent',parseFloat(form_data.rent.value));
+            form.append('hydropower',parseFloat(form_data.hydropower.value));
+            form.append('expenditure',parseFloat(form_data.expenditure.value));
+            form.append('loss',parseFloat(form_data.loss.value));
+            form.append('csrfmiddlewaretoken', form_data.csrfmiddlewaretoken.value);
+
+            $.ajax({
+                url:'save_operate',
+                type:'POST',
+                data:form,
+                processData:false,//不处理数据,
+                contentType:false,
+                success:function(result){
+                    result = eval(result)
+                    alert(result)
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    /*弹出jqXHR对象的信息*/
+                    alert(jqXHR.responseText);
+                    alert(jqXHR.status);
+                }
+            })
+        }
+        //页面宽度判断
+        window_width = document.body.clientWidth
+        main_box = document.getElementById("main")
+        gross_box = document.getElementById("gross")
+        business_box = document.getElementById("month_business_average")
+        month_box = document.getElementById("month_average")
+        if(window_width>1000){
+            main_box.style.width = "50%";
+            gross_box.style.width = "50%";
+        }
+        dataToname = {"profit":"毛利", "income":"收入", "wages":"工资", "insurance":"社保", "meituan":"美团", "rent":"租金", "hydropower":"水电",
+            "expenditure":"开支", "loss":"损耗"}
+
+        //获取数据
+        $.get('/get_operate_data',function(data){
+            the_data = eval(data)
+            // 项目初始化
+            data_list = {"profit" : [],"income":[],"wages":[],"insurance":[],"meituan":[],"rent":[],"hydropower":[],"expenditure":[],"loss":[],
+                        "month_list" :[]}
+            // 序列化
+            for(one_month of Object.values(the_data)){
+                data_list['month_list'].push(one_month['y_month'])
+                data_list['profit'].push(one_month['profit'])
+                data_list['income'].push(one_month['income'])
+                data_list['wages'].push(one_month['wages'])
+                data_list['insurance'].push(one_month['insurance'])
+                data_list['rent'].push(one_month['rent'])
+                data_list['meituan'].push(one_month['meituan'])
+                data_list['hydropower'].push(one_month['hydropower'])
+                data_list['expenditure'].push(one_month['expenditure'])
+                data_list['loss'].push(one_month['loss'])
+            }
+            // 单类求和
+            totle_dict = {}
+            totle_dict['profit'] = array_sums(data_list['profit'])
+            totle_dict['income'] = array_sums(data_list['income'])
+            totle_dict['wages'] = array_sums(data_list['wages'])
+            totle_dict['insurance'] = array_sums(data_list['insurance'])
+            totle_dict['rent'] = array_sums(data_list['rent'])
+            totle_dict['meituan'] = array_sums(data_list['meituan'])
+            totle_dict['hydropower'] = array_sums(data_list['hydropower'])
+            totle_dict['expenditure'] = array_sums(data_list['expenditure'])
+            totle_dict['loss'] = array_sums(data_list['loss'])
+            // 字典求和
+            totle_nums = 0
+            for(key of Object.keys(totle_dict)){
+                if(key != 'store_id' && key != 'y_month' && key!='profit' && key!='income'){
+                    totle_nums += totle_dict[key]
+                }
+            }
+            /*图标*/
+            //陈本整体对比图表
+            show_month = []
+            for(key of Object.keys(totle_dict)){
+                if(key != 'store_id' && key != 'y_month' && key!='profit' && key!='income'){
+                    percentage = totle_dict[key]/totle_nums*100
+                    show_month.push([dataToname[key],percentage.toFixed(2)])
+                }
+            }
+            set_pie(echarts.init(document.getElementById('main')), show_month, '成本比例')
+            //利润表
+            income_list = totle_income(data_list)
+            //设置收入表
+            chart_doc = echarts.init(document.getElementById('gross'))
+            y_data = [{name:'纯利', type:'line', data:income_list[1]},
+                    {name:'毛利', type:'line', data:income_list[3]}]
+            set_charts(chart_doc,y_data,income_list[0],'利润走势',['纯利','毛利'])
+
+            //设置开支表
+            gross = echarts.init(document.getElementById('main_totle_forms'))
+            var option = {
+                title: {
+                    text: '开支走势'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                      type: 'shadow',
+                      label: {
+                        show: true
+                      }
+                    }},
+                legend: {
+                    data:['总开支','房租','工资','社保','水电','开支','美团','损耗'],
+                    selected:{'总开支': false,},
+                    right:0,
+                },
+                xAxis: {
+                    data: data_list['month_list']
+                },
+                yAxis: {},
+                series: [
+                    {name: '总开支', type: 'line' ,data: income_list[2], stack: 'total',},
+                    {name: '房租',type: 'bar',data: data_list['rent'], stack: 'total',},
+                    {name: '工资',type: 'bar',data: data_list['wages'], stack: 'total',},
+                    {name: '水电',type: 'bar',data: data_list['hydropower'], stack: 'total',},
+                    {name: '社保',type: 'bar',data: data_list['insurance'], stack: 'total',},
+                    {name: '开支',type: 'bar',data: data_list['expenditure'], stack: 'total',},
+                    {name: '美团',type: 'bar',data: data_list['meituan'], stack: 'total',},
+                    {name: '损耗',type: 'bar',data: data_list['loss'], stack: 'total',}
+                    ]
+            };
+            gross.setOption(option)
+        });
+    </script>
+</section>
+{% endblock %}

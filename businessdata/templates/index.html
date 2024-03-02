@@ -1,19 +1,16 @@
 {% extends 'base.html' %}
-{% load common_tags %}
 {% block title %}领克便利数据中心{% endblock %}
 {% block header %}
     数据概括
     <small>统计数据概括</small>
 {% endblock %}
-
+{% load common_tags %}
 {% block content_body %}
 <section style="margin:auto; padding-top:20px;" class="content container-fluid">
     <script src="static/js/echarts.js"></script>
-<!--    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>-->
     {% if user.admin_type == 1 %}
     <form id="select_form" role="form" action="/" method="get" enctype="multipart/form-data">
         <div class="form-group" style="margin-left:10px; font-size:16px; text-align:right;width:100%;">
-
             <label for="store_id">选择门店</label>
             <select onchange="gotolaction('/?store_id='+this.value)" id="select_store_id" name="store_id">
                 {% all_stores as stores %}
@@ -21,30 +18,66 @@
                 <option {% if item.id == store_id %} selected="selected" {% endif %} value="{{item.id}}">{{item.name}}</option>
                 {% endfor %}
             </select>
-
         </div>
     </form>
 
+    <div style="font-size:12px; border:1px solid red;">
+        <table border="0" width="100%" height="50px" style="background:red;">
+            <tr>
+                <td style="background:red; color:#fff; width:35%; text-align:center; border-right:1px solid #fff;">
+                    <span style=" font-size:24px; height:50px; float:left; width:100%; line-height:50px;"><b>{{ top_data.0 }}</b></span>
+                    <span style="float:left; width:50%; height:25px;">同比：{{top_data.1|floatformat:'2'}}</span>
+                    <span style="float:left; width:50%">环比：{{top_data.2|floatformat:'2'}}</span>
+                </td>
+                <td style="background:red;padding-right:5px; font-size:12px; color:#fff; width:30%; text-align:center; border-right:1px solid #fff;">
+                    <span style=" font-size:24px; height:50px; float:left; width:100%; line-height:50px;" id="orders"></span>
+                    <span style="float:left; width:50%; height:25px;" id="order_compare_same"></span>
+                    <span style="float:left; width:50%" id="order_compare_first"></span>
+
+                </td>
+                <td style="padding-left:5px; padding-right:5px; background:red; color:#fff; text-align:center;">
+                    <span style=" font-size:24px; height:50px; float:left; width:100%; line-height:50px;" id="price"></span>
+                    <span style="float:left; width:50%; height:25px;" id="price_compare_same"></span>
+                    <span style="float:left; width:50%" id="price_compare_first"></span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="float:left; width:100%; padding:5px; border:1px solid red;">
+        <span style="float:left; width:30%;">总天数：{{all_data.count}} (<script>document.write(Math.floor({{all_data.count}}/3.65)/100)</script>年)</span>
+
+        <span style="float:left; width:40%; text-align:center;">总营业额：{{totle_turnover|floatformat:'0'}} </span>
+        <span style="float:right; width:30%; text-align:right;">总毛利：{{totle_gross|floatformat:'0'}}</span>
+        <span style="float:left; width:30%; text-align:left;">营业额平均：{% widthratio totle_turnover all_data.count 1 %}</span>
+        <span style="float:left; width:40%; text-align:center;">毛利额平均：{% widthratio totle_gross all_data.count 1 %} </span>
+        <span style="float:right;">毛利率平均：<script>document.write({% widthratio totle_gross totle_turnover 10000 %}/100)</script>%</span>
+    </div>
+    <div style="float:left; width:100%; height:35px; border:1px solid red; margin-top:2px; margin-bottom:2px;" id="year_turnover"></div>
     <div id="main" style="width:100%;height:500px; border:1px solid red;float:left;"></div>
     <div id="gross" style="width:100%; height:500px; border:1px solid blue;float:left;"></div>
+    <div id="month_business_average" style="width:100%; height:500px; border:1px solid red;float:left;"></div>
     <div id="month_average" style="width:100%; height:500px; border:1px solid #000; float:left"></div>
-    <div style="font-size:14px; border:1px solid red;">
-        统计总天数：{{all_data.count}} 总营业额：{{totle_turnover|floatformat:'2'}} 总毛利：{{totle_gross|floatformat:'2'}}<br />
-        营业额总平均：{% widthratio totle_turnover all_data.count 1 %}<br />
-        毛利额总平均：{% widthratio totle_gross all_data.count 1%}
-    </div>
     {% endif %}
-    <div id="main_totle_forms" style="width:100%;height:500px; border:1px solid blue;"></div>
-    <div id="main_average_forms" style="width:100%;height:500px;border:1px solid blue;"></div>
-    <div id="main_hours" style="width:100%;height:500px; border:1px solid red;"></div>
-    <div id="main_weeks" style="width:100%;height:500px; border:1px solid red;"></div>
+
+    <div id="main_totle_forms" style="width:100%;height:500px; border:1px solid blue; float:left;"></div>
+    <div id="main_average_forms" style="width:100%;height:500px;border:1px solid blue; float:left;"></div>
+    <div id="main_week_hours" style="width:100%; height:500px; border:1px solid red; float:left;"></div>
+    <div id="main_hours" style="width:100%;height:500px; border:1px solid red; float:left;"></div>
+    <div id="main_weeks" style="width:100%;height:500px; border:1px solid red; float:left;"></div>
     <script type="text/javascript">
+        {% if user.admin_type == 1 %}
+        // 仅管理员展示
+        // 根据屏幕宽度调整头部报表展示方式
         window_width = document.body.clientWidth
         main_box = document.getElementById("main")
         gross_box = document.getElementById("gross")
+        business_box = document.getElementById("month_business_average")
+        month_box = document.getElementById("month_average")
         if(window_width>1000){
             main_box.style.width = "50%";
             gross_box.style.width = "50%";
+            business_box.style.width = "50%";
+            month_box.style.width = "50%";
         }
         // 选项监听
         form = document.getElementById('select_form')
@@ -52,70 +85,146 @@
             alert('changed');
             form.submit();
         }
-        {% if user.admin_type == 1 %}
-
         // 营业数据
         var myChart = echarts.init(document.getElementById('main'));
-
-        var option = {
+        option = {
             title: {
-                text: '[{{store_name}}]营业趋势',
-                subtext:'wooght',
+                text: '[{{store_name}}]营业额'
             },
-            tooltip: {},
-            legend: {
-                data:['营业额','平均值','月均线'],
-                right:0,
-            },
-            xAxis: {
-                data: [
+              tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                  type: 'shadow',
+                  label: {
+                    show: true
+                  }
+                }
+              },
+              legend: {
+                data: ['单位万', '营业额', '平均值', '月均值', '毛利率'],
+                itemGap: 5,
+                right: 20
+              },
+              grid: {
+                top: '12%',
+                left: '1%',
+                right: '10%',
+                containLabel: true
+              },
+              xAxis: [
+                {
+                  type: 'category',
+                  data: [
                   {% for item in all_data %}
                     '{{item.date}}',
                   {% endfor %}
-                ]
-            },
-            yAxis: {},
-            series:[
+                  ]
+                }
+              ],
+              yAxis: [
+                {
+                  type: 'value',
+                  name: '单位万',
+                  axisLabel: {
+                    formatter: function (a) {
+                      a = +a;
+                      return isFinite(a) ? echarts.format.addCommas(+a / 10000) : '';
+                    }
+                  }
+                },
+                {
+                    type: 'value',
+                    name: '毛利率',
+                    max: 32,
+                    min: 22
+                }
+              ],
+              dataZoom: [
+                {
+                  show: true,
+                  start: 60,
+                  end: 100
+                },
+                {
+                  type: 'inside',
+                  start: 94,
+                  end: 100
+                },
+                {
+                  show: true,
+                  yAxisIndex: 0,
+                  filterMode: 'empty',
+                  width: 20,
+                  height: '80%',
+                  showDataShadow: false,
+                  left: '93%'
+                }
+              ],
+              series: [
                 {
                     name: '营业额',
-                    color: '#c22',
                     type: 'bar',
                     data: [
                         {% for item in all_data %}
                         {{item.turnover}},
-                        {% endfor %}],
-//                        markArea:{
-//                            itemStyle: {
-//                                color: 'rgba(0, 0, 177, 0.2)'
-//                                },
-//                            data: [
-//                                [{
-//                                    name: '2019',
-//                                    xAxis: '2019年1月1日'
-//                                }, {
-//                                    xAxis: '2020年1月1日'
-//                                }],
-//                            ]
-//                        }
+                        {% endfor %}
+                        ],
+                    yAxisIndex:0
                 },
 
                 {
                     name: '平均值',
                     type: 'line',
                     data: {{average}},
-                    color: '#334455',
+                    yAxisIndex: 0
                 },
 
                 {
-                    name: '月均线',
+                    name: '月均值',
                     type: 'line',
                     data: {{month_average}},
-                    color: '#112233',
+                    yAxisIndex: 0
                 },
-            ]
-        };
+                {
+                    name: '毛利率',
+                    type: 'line',
+                    data: {{month_average_gross}},
+                    yAxisIndex: 1
+                }
+              ]
+            };
         myChart.setOption(option);
 
+        // 月平均值比较图
+        var month_business_averageChart = echarts.init(document.getElementById('month_business_average'));
+        var option = {
+            title: {
+                text: '[{{store_name}}]月平均值'
+            },
+            tooltip: {},
+            legend: {
+                data:['月平均值'],
+                right:0,
+            },
+            xAxis: {
+                data: [
+                  {% for key, value in month_average_dict.items %}
+                    '{{key}}',
+                  {% endfor %}
+                ]
+            },
+            yAxis: {},
+            series: [{
+                name: '月平均值',
+                type: 'bar',
+                data: [
+                  {% for key, value in month_average_dict.items %}
+                    {{value.0}},
+                    {% endfor %}
+                ]
+                },]
+        };
+        month_business_averageChart.setOption(option);
 
         // 毛利额月比较图
         var grossChart = echarts.init(document.getElementById('gross'));
@@ -167,6 +276,27 @@
                   {% endfor %}
                 ]
             },
+            dataZoom: [
+                {
+                  show: true,
+                  start: 60,
+                  end: 100
+                },
+                {
+                  type: 'inside',
+                  start: 94,
+                  end: 100
+                },
+                {
+                  show: true,
+                  yAxisIndex: 0,
+                  filterMode: 'empty',
+                  width: 10,
+                  height: '100%',
+                  showDataShadow: false,
+                  left: '93%'
+                }
+              ],
             yAxis: {},
             series: [{
                 name: '同比',
@@ -187,9 +317,46 @@
                 },]
         };
         averageChart.setOption(option);
+
+        // 年营业额
+        var yearChart = echarts.init(document.getElementById('year_turnover'));
+        var option = {
+            grid:{
+                left: '0',
+                right: '0',
+                containLabel: false,
+            },
+            tooltip: {},
+            xAxis: {
+                type: 'value',
+            },
+            yAxis: {
+                type: 'category',
+                data: ['年销量-万'],
+            },
+            series: [
+                {%for key, value in year_turnover.items%}
+                {
+                name: '{{key}}',
+                type: 'bar',
+                stack: 'Ad',        //追加在后面
+                stack: 'total',
+                label: {
+                    show: true
+                },
+                emphasis: {
+                    focus: 'series'
+                },
+                data: [({{value|floatformat:'0'}}/10000).toFixed(2)]
+                },
+                {% endfor %},
+                ]
+        };
+        yearChart.setOption(option);
+        // 仅管理员展示结束
         {% endif %}
 
-
+        // 基本信息展示
         // 基于一周数据图标
         var myChart = echarts.init(document.getElementById('main_weeks'));
         var option = {
@@ -224,91 +391,50 @@
         // 获取一天24小时销售情况
         $.get('/day_sales_trend',function(data){
             all_data = eval(data)
-
             // 基于小时数据图标
-            var myChart = echarts.init(document.getElementById('main_hours'));
-
-            var option = {
-                title: {
-                    text: '[{{store_name}}]24小时营业趋势'
-                },
-                tooltip: {},
-                legend: {
-                    data:['最近一月','上一月','去年同期'],
-                    right:0,
-                },
-                xAxis: {
-                    data: all_data.day_times
-                },
-                yAxis: {},
-                series: [{
-                    name: '最近一月',
-                    type: 'bar',
-                    data: all_data.last_month
-                    },{
-                    name: '去年同期',
-                    type: 'line',
-                    data: all_data.same_month,
-                    color: 'green'
-                    },{
-                    name: '上一月',
-                    type: 'line',
-                    data: all_data.first_month,
-                    color: 'blue',
-                    }]
-            };
-            myChart.setOption(option);
+            var hours_chart = echarts.init(document.getElementById('main_hours'));
+            chart_data = [
+                {name: '最近一月',type: 'bar',data: all_data.last_month},
+                {name: '去年同期',type: 'line',data: all_data.same_month,color: 'green'},
+                {name: '上一月',type: 'line',data: all_data.first_month,color: 'blue',}
+            ]
+            set_charts(hours_chart, chart_data,all_data.day_times,'24小时趋势',['最近一月','上一月','去年同期'])
+            var main_week_hours = echarts.init(document.getElementById('main_week_hours'));
+            hotmap(main_week_hours,all_data.week_hours_num, '月24小时热力图')
         });
 
         // 单数以及单价
         $.get('/totle_forms',function(data){
             all_data = eval(data)
+            all_date = Object.keys(all_data.date_dict)                      // 获取日期
+            all_nums = Object.values(all_data.date_dict)                    // 获取订单数量
+            day_average_price = Object.values(all_data.price_dict)          // 获取单价
+            average_data = Object.values(all_data.average_data)             // 获取订单量平均值
+            price_average_data = Object.values(all_data.average_price_data) // 获取订单单价平均值
             // 单数
-            var myChart = echarts.init(document.getElementById('main_totle_forms'));
-            var option = {
-                title: {
-                    text: '[{{store_name}}]订单量'
-                },
-                tooltip: {},
-                legend: {
-                    data:['订单数'],
-                    right:0,
-                },
-                xAxis: {
-                    data: all_data.date
-                },
-                yAxis: {},
-                series: [{
-                    name: '订单数',
-                    type: 'bar',
-                    data: all_data.num
-                    },]
-            };
-            myChart.setOption(option);
+            var forms_chart = echarts.init(document.getElementById('main_totle_forms'));
+            chart_data = [
+                {name: '订单数',type: 'bar',data: all_nums},
+                {name: '月均值',type: 'line',data: average_data[0]}
+            ]
+            set_charts(forms_chart, chart_data,all_date,'订单趋势',['订单数','月均值'])
 
             //单价
-            var myChart = echarts.init(document.getElementById('main_average_forms'));
+            var average_chart = echarts.init(document.getElementById('main_average_forms'));
+            chart_data = [
+                {name: '单价',type: 'bar',data: day_average_price},
+                {name: '平均值',type: 'line',data: price_average_data[0]}
+            ]
+            set_charts(average_chart, chart_data,all_date,'单价趋势',['单价','平均值'])
 
-            var option = {
-                title: {
-                    text: '[{{store_name}}]平均单价'
-                },
-                tooltip: {},
-                legend: {
-                    data:['单价'],
-                    right:0,
-                },
-                xAxis: {
-                    data: all_data.date
-                },
-                yAxis: {},
-                series: [{
-                    name: '订单数',
-                    type: 'bar',
-                    data: all_data.money
-                    },]
-            };
-            myChart.setOption(option);
+            // 头部数据展示
+            $('#price').text(price_average_data[0].slice(-1))
+            $('#orders').text(average_data[0].slice(-1))
+            last_key = Object.keys(price_average_data[1]).slice(-1)
+            $('#price_compare_same').text('同比:'+price_average_data[1][last_key][1].toFixed(2))
+            $('#price_compare_first').text('环比:'+price_average_data[1][last_key][2].toFixed(2))
+            $('#order_compare_same').text('同比:'+average_data[1][last_key][1].toFixed(2))
+            $('#order_compare_first').text('环比:'+average_data[1][last_key][2].toFixed(2))
         });
     </script>
 </section>

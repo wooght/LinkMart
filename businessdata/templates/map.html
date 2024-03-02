@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}领克便利数据中心{% endblock %}
+{% block header %}
+{% endblock %}
+{% load common_tags %}
+{% block content_body %}
+<section style="margin:auto; padding-top:20px;" class="content container-fluid">
+    <script src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=45EcEdTSLRwAK9HORoMbqHiR2pX6712T"></script>
+    <script src="/static/js/wooght_map.js?v={% wooght_random %}"></script>
+    <script src="/static/js/linkmart_cd_json.js?v={% wooght_random %}"></script>
+    <div id="map_box" style="overflow:hidden; width:100%; height:1000px;">
+
+    </div>
+    <script>
+        // 根据屏幕宽度调整头部报表展示方式
+        window_width = document.body.clientWidth
+        map_box = document.getElementById("map_box")
+        if(window_width>1000){
+            map_box.style.height = "650px";
+        }
+
+
+        area_list = [
+            {% for item in areas %}
+            {name:'{{item.area_name}}',point:[{{item.area_x}},{{item.area_y}}],price:{{item.area_consumption_rate}}},
+            {% endfor %}
+            ]
+        store_list = [
+            {% for item in stores %}
+            {name:'{{item.store_name}}',point:[{{item.store_x}},{{item.store_y}}],price:{{item.store_orders}}},
+            {% endfor %}
+        ]
+        //门店标签
+        all_label = {
+            {%for label in cd_labels%}{{label.id}}:['{{label.label_name}}',{{label.label_score}}],{%endfor%}0:['无',0]}
+
+        var map = new BMapGL.Map('map_box'); // 创建Map实例
+        map.centerAndZoom(new BMapGL.Point(104.1168094341174,30.649771126111595), 13); // 初始化地图,设置中心点坐标和地图级别
+        map.enableScrollWheelZoom(true); // 开启鼠标滚轮缩放
+        map.setMapType(BMAP_EARTH_MAP);//卫星地图模式
+        map.setMapType(BMAP_NORMAL_MAP);//标志地图模式
+        map.setMapStyleV2({
+            styleJson:linkmart_style
+        });
+        xs_area = 0
+        xs_store = 0
+        function set_area(){
+            for(item of area_list){
+                add_fangjia(map,item.point,item.name,'<b style="color:#f00;">'+item.price+'</b>',true)
+            }
+            xs_area = 1
+        }
+        function set_store(){
+            map_add_stores(map)
+            xs_store = 1
+        }
+        map.addEventListener("zoomend", function(){
+            if(map.getZoom()>=16){
+                if(xs_store==0){
+                    map.clearOverlays()
+                    xs_area = 0
+                    xs_store==0?set_store():''
+                }
+            }
+            else if(map.getZoom()<16){
+                if(xs_area==0){
+                    map.clearOverlays()
+                    xs_store = 0
+                    xs_area==0?set_area():''
+                }
+            }
+        });
+        set_area()
+    </script>
+</section>
+{% endblock %}

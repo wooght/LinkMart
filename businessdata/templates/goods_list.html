@@ -13,31 +13,30 @@
     <div id="main" style="width:100%;height:400px;border:1px solid red;">
         <div style="text-align:center;"><img src="static/pic/loading.gif"></div>
     </div>
-    <div style="width:100%; height:18px; font-size:12px; border:1px solid red; color:#fff; background:red;">
-        <span style="float:left; display:block; width:45%;">成本：<b id="cost"></b> </span>
+    <div id="day_time" style="width:100%; height:400px; border:1px solid blue;"></div>
+    <div style="width:100%; height:50px; font-size:16px; border:1px solid red; color:#fff; background:red; margin:2px 0px;padding:2px;">
+        <span style="float:left; display:block; width:25%;">同比:<b id="compare_same"></b></span>
+        <span style="float:left; display:block; width:25%;">环比:<b id="compare_first"></b></span>
+
         <span style="float:left; display:block;">日均：<b id="day"></b></span>
-        <span style="float:right; display:block;">近30日：<b id="month"></b></span>
+        <span style="float:right; display:block;">近30日：<b id="month"></b></span><br />
+        <span style="float:left; display:block; width:35%;">成本：<b id="cost"></b> </span>
+        <span style="float:left; display:block; width:30%;">毛利率:<b id="gross"></b></span>
+        <span style="float:right; display:block;">可售:<b id="price"></b></span>
 
     </div>
     <table class="table table-hover" id="goods_list">
         <tr>
-            <th>商品</th>
+            <th class="first_th">商品</th>
             <th>分类</th>
             <th>库存</th>
-            <th>30日</th>
+            <th onclick="good_sales_sort(1)" style="border:1px solid #ccc; background:red; color:#fff;">全部</th>
+            <th onclick="good_sales_sort(0)" style="border:1px solid #ccc; background:red; color:#fff;">30日</th>
         </tr>
-<!--        {% for item in goods_list %}-->
-<!--        <tr>-->
-<!--            <td><a href="/goods_form/{{item.id}}"><span class="badge bg-red">{{item.bar_code}}</span>-->
-<!--                <br /><span class="badge bg-blue">{{item.name}}</span></a></td>-->
-<!--            <td>{{item.classify}}</td>-->
-<!--            <td>{{item.stock_nums}}</td>-->
-<!--            <td>{{item.store_id}}</td>-->
-<!--            <td><span class="label label-success"><a style="color:#fff;" href='/goods_form/{{item.id}}'>查看</a></span></td>-->
-<!--        </tr>-->
-<!--        {% endfor %}-->
+
     </table>
     <script>
+        all_goods = Object();
         {%if is_search%}
         $.get('/one_classify_sales?goods_code={{request.GET.goods_code}}',function(data){
         {%else%}
@@ -46,14 +45,25 @@
             all_data = eval(data)
             all_date = Object.keys(all_data.date_dict) //获取键值
             all_nums = Object.values(all_data.date_dict)  // 获取值
+            time_list = Object.keys(all_data.time_dict) //获取小时数据
+            time_nums = Object.values(all_data.time_dict)//获取小时对应数量
+
             month_average = all_data.month_data_list
             all_goods = all_data.goods_sales_list;
             $('#day').text(all_data.day_average);
             $('#month').text(all_data.totle_num_30);
-            $('#cost').text(all_data.cost);
+            $('#cost').text(all_data.cost.toFixed(2));  //toFixed(2) 保留2位小数
+            $('#price').text(all_data.price.toFixed(2));
+            var gross =parseFloat((all_data.price-all_data.cost)/all_data.price)
+            $('#gross').text(gross.toFixed(2))
+            last_keys = Object.keys(month_average[1])
+            last_key = last_keys[last_keys.length-1]
+            $('#compare_same').text(month_average[1][last_key][1])
+            $('#compare_first').text(month_average[1][last_key][2])
             // 基于小时数据图标
             // 基于准备好的dom，初始化echarts实例
             var myChart = echarts.init(document.getElementById('main'));
+            var timeChart = echarts.init(document.getElementById('day_time'));
 
             // 指定图表的配置项和数据
             var option = {
@@ -77,25 +87,69 @@
                     {
                     name: '月均值',
                     type: 'line',
-                    data: month_average
+                    data: month_average[0]
                     }]
             };
 
             // 使用刚指定的配置项和数据显示图表。
             myChart.setOption(option);
 
+            // 小时走势图表
+            var option = {
+                title: {
+                    text: '[{%if is_search%}{{request.GET.goods_code}}{%else%}{{request.GET.classify}}{%endif%}]小时走势'
+                },
+                tooltip: {},
+                legend: {
+                    data:['小时走势'],
+                    right:0,
+                },
+                xAxis: {
+                    data: time_list
+                },
+                yAxis: {},
+                series: [{
+                    name: '营业量',
+                    type: 'line',
+                    data: time_nums
+                    }]
+            };
+            timeChart.setOption(option);
+
             //显示商品列表
             var goods_list = $('#goods_list')
             for(good in all_goods){
-                new_html = '<tr><td><a href="/goods_form/'+all_goods[good][3]+'"><span class="badge bg-red">'+all_goods[good][1]+
+                new_html = '<tr ondblclick="copy_text(this,\''+all_goods[good][4]+'\')"><td class="first_th"><a href="/goods_form/'+all_goods[good][3]+'"><span class="badge bg-red">'+all_goods[good][1]+
                             '</span><br /><span class="badge bg-blue">'+all_goods[good][4]+
-                            '</span></a></td><td>'+all_goods[good][0]+
-                            '</td><td>'+all_goods[good][5]+
+                            '</span></a></td><td><a href="/goods_list?classify='+all_goods[good][0]+'">'+all_goods[good][0]+
+                            '</a></td><td>'+all_goods[good][5]+
+                            '</td><td>'+all_goods[good][2]+
                             '</td><td>'+all_goods[good][7]+
-                            '</tr>'
+                            '</td>></tr>'
                 goods_list.append(new_html)
             }
         });
+        //排序
+        function good_sales_sort(a_or_b){
+            var goods_list = document.getElementById('goods_list')
+            delete_tr(goods_list)
+            var goods_list = $('#goods_list')
+            if(a_or_b>0){
+                var sort_key = Object.keys(all_goods).sort(function(a,b){return -(all_goods[a][2]-all_goods[b][2])})
+            }else{
+                var sort_key = Object.keys(all_goods).sort(function(a,b){return -(all_goods[a][7]-all_goods[b][7])})
+            }
+            for(key in sort_key){
+                new_html = '<tr ondblclick="copy_text(this,\''+all_goods[sort_key[key]][4]+'\')"><td class="first_th"><a href="/goods_form/'+all_goods[sort_key[key]][3]+'"><span class="badge bg-red">'+all_goods[sort_key[key]][1]+
+                            '</span><br /><span class="badge bg-blue">'+all_goods[sort_key[key]][4]+
+                            '</span></a></td><td><a href="/goods_list?classify='+all_goods[sort_key[key]][0]+'">'+all_goods[sort_key[key]][0]+
+                            '</a></td><td>'+all_goods[sort_key[key]][5]+
+                            '</td><td>'+all_goods[sort_key[key]][2]+
+                            '</td><td>'+all_goods[sort_key[key]][7]+
+                            '</td>></tr>'
+                goods_list.append(new_html)//append 是jQuery的方法
+            }
+        }
     </script>
 </section>
 {% endblock %}

@@ -1,9 +1,5 @@
 <aside class="main-sidebar">
-
-  <!-- sidebar: style can be found in sidebar.less -->
   <section class="sidebar">
-
-    <!-- Sidebar Menu -->
     <ul class="sidebar-menu" data-widget="tree">
         <li class="header">营业数据</li>
         <li class="treeview {%if 'caijing' in request.path %}active menu-open{% endif %}">
@@ -27,11 +23,9 @@
               <i class="fa fa-angle-left pull-right"></i>
             </span>
             </a>
-<!--            <ul class="treeview-menu">-->
-<!--                <li><a href="redian_list'"><i class="fa fa-circle-o">总开支</i></a></li>-->
-<!--                <li><a href="zuhe_change_list'"><i class="fa fa-circle-o">工资开支</i></a></li>-->
-<!--                <li><a href="ddtop100_list'"><i class="fa fa-circle-o">采购维修开支</i></a></li>-->
-<!--            </ul>-->
+            <ul class="treeview-menu">
+                <li><a href="operate"><i class="fa fa-circle-o">运营数据</i></a></li>
+            </ul>
         </li>
         <li class="header">产品数据</li>
         <li class="treeview {%if 'article' in request.path %}active menu-open{% endif %}">
@@ -65,7 +59,15 @@
             </ul>
         </li>
         {%endif%}
-
+        <li><a href="/upload_form">
+                <i class="fa fa-folder"></i><span>数据上传</span>
+            </a>
+        </li>
+        <li>
+            <a href="/barcodeprint">
+                <i class="fa fa-book"></i><span>打印标签</span>
+            </a>
+        </li>
         {% if perms.admin %}
         {# 判断是否拥有管理员权限 #}
         <li>
@@ -78,6 +80,23 @@
             </a>
         </li>
         {% endif %}
+        {%if user.admin_type == 1%}
+        <li class="treeview">
+            <a href="#">
+              <i class="fa fa-laptop"></i>
+              <span>踩点数据</span>
+              <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+            </a>
+            <ul class="treeview-menu">
+                <li><a href="/map"><i class="fa fa-circle-o">地图展示</i></a></li>
+                <li><a href="/save_cd_area"><i class="fa fa-circle-o">商圈管理</i> </a> </li>
+                <li><a href="/save_cd_store"><i class="fa fa-circle-o">门店管理</i> </a> </li>
+                <li><a href="/save_cd_data"><i class="fa fa-circle-o">添加踩点</i> </a> </li>
+            </ul>
+        </li>
+        {%endif%}
     </ul>
   </section>
 </aside>

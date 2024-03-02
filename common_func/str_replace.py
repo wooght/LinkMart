@@ -16,3 +16,9 @@ def str_replace(old_str):
     for key, value in replace_dict.items():
         old_str = old_str.replace(key, value)
     return old_str
+
+
+# 获取模型字段列表
+def get_model_fields(model):
+    fields = [field.name for field in model._meta.get_fields()]
+    return fields

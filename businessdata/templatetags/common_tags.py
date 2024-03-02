@@ -5,12 +5,14 @@
 # @Author   : wooght
 # @File     : select_plate.py
 
-'''
+"""
 模板标签函数
 文件夹名：templatetags
 必须在settings的TEMPLATES中注册
-'''
+"""
+import random
 
+import requests
 from django import template
 from businessdata.models import store_list
 from django.conf import settings
@@ -27,3 +29,8 @@ def all_stores():
 @register.simple_tag()
 def site_info(info_id):
     return settings.SITE_NAME[info_id]
+
+
+@register.simple_tag()
+def wooght_random():
+    return random.randint(1, 1000)

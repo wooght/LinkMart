@@ -11,6 +11,10 @@
     <script src="static/js/echarts.js"></script>
     <div id="main_pie" style="width:100%;height:500px; border:1px solid red; float:left;"></div>
     <div id="main" style="width:100%;height:500px; border:1px solid red; float:left;"></div>
+    <div id="same_compare_text" style="width:50%; height:25px; float:left; border:1px solid red; margin-top:2px;"></div>
+    <div id="month_compare_text" style="width:50%; height:25px; float:left; border:1px solid red; margin-top:2px;"></div>
+    <div id="same_compare" style="width:50%; height:1500px; float:left; border:1px solid red;"></div>
+    <div id="month_compare" style="width:50%; height:1500px; float:left; border:1px solid red"></div>
     <div id="main_smoke" style="width:100%; height:400px; border:1px solid red; float:left;"></div>
     <div id="main_water" style="width:100%; height:400px; border:1px solid red; float:left;"></div>
 
@@ -27,212 +31,208 @@
             pie_box.style.width = "50%";
             main_box.style.width = "50%";
         }
-    function set_pie(all_data){
-        var myChart = echarts.init(document.getElementById('main_pie'));
-        classify_data = []
-        var i=0;
-        for(key in all_data){
-            if(all_data[key][1]<1){continue;}
-            classify_data.push({value:all_data[key][1],name:all_data[key][0]})
-        }
-        option = {
-            backgroundColor: '#2c343c',
 
-            title: {
-                text: '类别销售数量对比',
-                left: 'center',
-                top: 20,
-                textStyle: {
-                    color: '#ccc'
-                }
-            },
 
-            tooltip : {
-                trigger: 'item',
-                formatter: "{a} <br/>{b} : {c} ({d}%)"
-            },
-            series:[
-                {
-                    name:'',
-                    type:'pie',
-                    radius : '75%',
-                    center: ['50%', '50%'],
-                    data:classify_data.sort(function (a, b) { return a.value - b.value; }),
-                    roseType: 'radius',
-                    label: {
-                        normal: {
-                            textStyle: {
-                                color: 'rgba(255, 255, 255, 0.3)'
-                            }
-                        }
-                    },
-                    labelLine: {
-                        normal: {
-                            lineStyle: {
-                                color: 'rgba(255, 255, 255, 0.3)'
-                            },
-                            smooth: 0.2,
-                            length: 10,
-                            length2: 20
-                        }
-                    },
-                    itemStyle: {
-                        normal: {
-                            color: '#c23531',
-                            shadowBlur: 200,
-                            shadowColor: 'rgba(0, 0, 0, 0.5)'
-                        }
-                    },
-
-                    animationType: 'scale',
-                    animationEasing: 'elasticOut',
-                    animationDelay: function (idx) {
-                        return Math.random() * 200;
+        // 类别同比图标
+        function set_compare(compare_data,box_title,boxChart){
+            classify= []
+            for(key in compare_data){
+                classify.push(compare_data[key].name)
+            }
+            var option = {
+                backgroundColor: '#eeeeee',
+                title: {
+                    text: box_title,
+                    textStyle:{
+                        color:'#000',
                     }
-                }
-            ]
-        };
-        myChart.setOption(option);
-    }
-
-
-    $.get('/classify_sales_ratio',function(data){
-        all_data = eval(data)
-        classify_data = []
-        sales_data = []
-        for(key in all_data){
-            classify_data.push(all_data[key][0])
-            sales_data.push(all_data[key][1])
+                },
+                tooltip: {},
+                legend: {
+                    data:['涨幅'],
+                    right:0,
+                },
+                yAxis: {
+                    data: classify,
+                    position: 'right',
+                    type: 'category',
+                    nameLocation: 'center',
+                    nameTextStyle:{
+                        fontStyle: 'italic',
+                        width:50,
+                    },
+                    axisLabel:{
+                        interval:0, // 标签没有间隔，及标签全部显示
+                        rotate:15,  //标签转动角度
+                        width:70,
+                    },
+                    axisTick:{
+                        length:5,
+                    }
+                },
+                xAxis: {
+                    position:'top',
+                    scale:true,
+                },
+                series: [{
+                    name: '涨幅',
+                    type: 'bar',
+                    data: Object.values(compare_data)
+                    },]
+            };
+            boxChart.setOption(option);
+            //绑定点击时间
+            boxChart.on("click",function(e){
+                window.open(e.data.url);
+            })
         }
-        var myChart = echarts.init(document.getElementById('main'));
 
-        var option = {
-            backgroundColor: '#eeeeee',
-            title: {
-                text: '分类销售比例',
-                textStyle:{
-                    color:'#ccc',
+        $.get('/classify_sales_ratio',function(data){
+            get_data = eval(data)
+            all_data = get_data[0]      //获取分类数量
+            classify_data = []
+            sales_data = []
+            for(key in all_data){
+                classify_data.push(all_data[key][0])
+                sales_data.push({value:all_data[key][1], url:'/goods_list?classify='+all_data[key][0]})
+            }
+            var myChart = echarts.init(document.getElementById('main'));
+            var option = {
+                backgroundColor: '#eeeeee',
+                title: {
+                    text: '类别排序',
+                    textStyle:{
+                        color:'#ccc',
+                    }
+                },
+                tooltip: {},
+                legend: {
+                    data:['销售量'],
+                    right:0,
+                },
+                yAxis: {
+                    data: classify_data.slice(-20),
+                    axisLabel:{
+                        interval:0, // 标签没有间隔，及标签全部显示
+                    },
+                },
+                xAxis: {
+                    position:'top',
+                    scale:true,
+                },
+                series: [{
+                    name: '销售量',
+                    type: 'bar',
+                    data: sales_data.slice(-20)
+                    },]
+            };
+            myChart.setOption(option);
+            myChart.on("click",function(e){
+                window.open(e.data.url);
+            })
+
+            // 获取对比数据
+            compare_data = get_data[1]  // 获取对比数据
+            same_compare = []
+            month_compare = []
+            same_add = [0,0]
+            month_add = [0,0]
+            // 数据分两类：同比，环比
+            for(key in compare_data){
+                same_compare.push({value:compare_data[key][0],name:key,url:'/goods_list?classify='+key})
+                if(compare_data[key][0]!=0){
+                    compare_data[key][0] > 0 ? same_add[0]+=1 : same_add[1]+=1
                 }
-            },
-            tooltip: {},
-            legend: {
-                data:['营业额'],
-                right:0,
-            },
-            yAxis: {
-                data: classify_data.slice(-15),
-                axisLabel:{
-                    interval:0, // 标签没有间隔，及标签全部显示
-                },
-            },
-            xAxis: {
-                position:'top',
-                scale:true,
-            },
-            series: [{
-                name: '营业额',
-                type: 'bar',
-                data: sales_data.slice(-15)
-                },]
-        };
+                month_compare.push({value:compare_data[key][1],name:key,url:'/goods_list?classify='+key})
+                if(compare_data[key][1]!=0){
+                    compare_data[key][1] > 0 ? month_add[0]+=1 : month_add[1]+=1
+                }
+            }
+            $('#same_compare_text').text('增长数：'+same_add[0]+' 下降数:'+same_add[1])
+            $('#month_compare_text').text('增长数：'+month_add[0]+' 下降数:'+month_add[1])
+            var sameChart = echarts.init(document.getElementById('same_compare'));
+            var monthChart = echarts.init(document.getElementById('month_compare'));
+            // 启动图标
+            set_compare(same_compare.sort(function(a, b){return a.value - b.value}),'同比',sameChart)
+            set_compare(month_compare.sort(function(a, b){return a.value - b.value}),'环比',monthChart)
+            var myChart = echarts.init(document.getElementById('main_pie'));
+            set_pie(myChart,all_data,'类别数量对比');      // 设置分类占比饼图
+        });
 
-        myChart.setOption(option);
-        set_pie(all_data);
-
-    });
-//数组求和函数
-function array_sum(arr,sk1,sk2){
-    sum=0
-    for(i=sk1,j=sk2;i<sk2;i++){
-        sum+=arr[i]
-    }
-    return sum;
-}
-// 数组求平均值 并返回数组
-function array_average(arr){
-    average_arr = []
-    for(i=0;i<arr.length;i++){
-       if(i<30){
-            average_arr.push(arr[i])
-       }else{
-            average_arr.push(array_sum(arr,i-30,i)/30)
-       }
-    }
-    return average_arr;
-}
-    $.get('/smoke_water_ratio',function(data){
-        all_data = eval(data)
-        all_date = Object.keys(all_data)
-        all_nums = Object.values(all_data)
-        all_smoke=new Array
-        all_water=[]
-        for(key in all_data){
-            all_smoke.push(all_data[key][0])
-            all_water.push(all_data[key][1])
-        }
-        average_smoke = array_average(all_smoke)
-        average_water = array_average(all_water)
-        var smoke = echarts.init(document.getElementById('main_smoke'));
-        var water = echarts.init(document.getElementById('main_water'));
-        var smoke_option = {
-            title: {
-                text: '香烟占比',
-                textStyle:{
-                    fontSize:14,
-                    color:'#333',
+        // 烟，水销量
+        $.get('/smoke_water_ratio',function(data){
+            all_data = eval(data)
+            all_date = Object.keys(all_data)
+            all_nums = Object.values(all_data)
+            all_smoke=new Array
+            all_water=[]
+            for(key in all_data){
+                all_smoke.push(all_data[key][0])
+                all_water.push(all_data[key][1])
+            }
+            average_smoke = array_average(all_smoke)
+            average_water = array_average(all_water)
+            var smoke = echarts.init(document.getElementById('main_smoke'));
+            var water = echarts.init(document.getElementById('main_water'));
+            var smoke_option = {
+                title: {
+                    text: '香烟占比',
+                    textStyle:{
+                        fontSize:14,
+                        color:'#333',
+                    },
                 },
-            },
-            tooltip: {},
-            legend: {
-                data:['香烟占比'],
-                right:0,
-            },
-            xAxis: {
-                data: all_date,
-                type: 'category',
-            },
-            yAxis: {},
-            series: [{
-                name: '香烟占比',
-                type: 'bar',
-                data: all_smoke
-                },{
-                name: '平均值',
-                type: 'line',
-                data: average_smoke
-                }]
-        };
-        var water_option = {
-            title: {
-                text: '饮料占比',
-                textStyle:{
-                    fontSize:14,
-                    color:'#333',
+                tooltip: {},
+                legend: {
+                    data:['香烟占比'],
+                    right:0,
                 },
-            },
-            tooltip: {},
-            legend: {
-                data:['饮料占比'],
-                right:0,
-            },
-            xAxis: {
-                data: all_date,
-                type: 'category',
-            },
-            yAxis: {},
-            series: [{
-                name: '饮料占比',
-                type: 'bar',
-                data: all_water
-                },{
-                name: '平均值',
-                type: 'line',
-                data: average_water
-                }]
-        };
-        smoke.setOption(smoke_option)
-        water.setOption(water_option)
-    });
+                xAxis: {
+                    data: all_date,
+                    type: 'category',
+                },
+                yAxis: {},
+                series: [{
+                    name: '香烟占比',
+                    type: 'bar',
+                    data: all_smoke
+                    },{
+                    name: '平均值',
+                    type: 'line',
+                    data: average_smoke
+                    }]
+            };
+            var water_option = {
+                title: {
+                    text: '饮料占比',
+                    textStyle:{
+                        fontSize:14,
+                        color:'#333',
+                    },
+                },
+                tooltip: {},
+                legend: {
+                    data:['饮料占比'],
+                    right:0,
+                },
+                xAxis: {
+                    data: all_date,
+                    type: 'category',
+                },
+                yAxis: {},
+                series: [{
+                    name: '饮料占比',
+                    type: 'bar',
+                    data: all_water
+                    },{
+                    name: '平均值',
+                    type: 'line',
+                    data: average_water
+                    }]
+            };
+            smoke.setOption(smoke_option)
+            water.setOption(water_option)
+        });
     </script>
 </section>
 {% endblock %}

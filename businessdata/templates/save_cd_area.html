@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}领克便利数据中心{% endblock %}
+{% block header %}
+{% endblock %}
+{% load common_tags %}
+{% block content_body %}
+<section style="margin:auto; padding-top:10px;" class="content container-fluid">
+    <script src="https://mapopen.bj.bcebos.com/github/BMapGLLib/TrackAnimation/src/TrackAnimation.min.js"></script>
+    <script src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=45EcEdTSLRwAK9HORoMbqHiR2pX6712T"></script>
+    <script src="/static/js/wooght_map.js?v={% wooght_random %}"></script>
+    <div id="map_box" style="overflow:hidden; width:100%; height:800px;">
+
+    </div>
+
+    <form role="form" action="/save_cd_area" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+    <div id="map_form_box">
+        <div class="col-md-6">
+            <div class="box box-info">
+                <h3 class="box-title">基本属性</h3>
+                <div class="inputbox">
+                    <label for="">商圈名称：</label>
+                    <input class="border-red" name="area_name" type="text" id="store_name">
+                    <label for="">人数</label>
+
+                    <input name="area_occ_rate" class="intinput" type="text" id=""><br>
+                    <label for="">地址X：</label>
+                    <input class="border-blue" name="area_x" type="text" id="area_x">
+                    <label for="">Y：</label>
+                    <input class="border-blue" name="area_y" type="text" id="area_y">
+                </div>
+                <p class="help-block"></p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="box box-info">
+                <h3 class="box-title">踩点数据</h3>
+                <div class="inputbox">
+                    <label for="">订单总量</label>
+                    <input class="intinput" value="0" name="area_totle_orders" type="text" id="">
+                    <label for="">户数</label>
+                    <input class="intinput" name="area_house" type="text" id="area_house">
+                    <label for="">户均人数</label>
+                    <input name="area_peoples"  class="intinput" value="0" type="text" id="">
+                    <label for="">入住率</label>
+                    <input class="intinput" name="houme_peoples" type="text">
+                    <label for="">门店数量</label>
+                    <input class="intinput" name="area_stores" type="text" id=""><br>
+                    <label for="">门店入住率</label>
+                    <input class="intinput" name="stores_occ_rate" type="text" id="">
+                    <label for="">消费频率</label>
+                    <input class="intinput" value="0" name="area_consumption_rate" type="text" id="">
+                </div>
+                <p class="help-block"></p>
+            </div>
+        </div>
+        <div class="box-footer">
+            <button type="submit" class="btn btn-primary">提交</button>
+        </div>
+    </div>
+    </form>
+
+    {% for item in areas %}
+    <form role="form" action="/save_cd_area" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+    <div id="map_form_box">
+        <div class="inputbox">
+            <label for="">商圈名称：</label>
+            <input name="id" value="{{item.id}}" style="display:none;">
+            <input class="border-red" name="area_name" value="{{item.area_name}}" type="text" id="store_name">
+            <br />
+            <label for="">地址X：</label>
+            <input class="border-blue" value="{{item.area_x}}" name="area_x" type="text" id="area_x">
+            <label for="">Y：</label>
+            <input class="border-blue" value="{{item.area_y}}" name="area_y" type="text" id="area_y">
+            <br />
+            <label for="">人数</label>
+            <input class="intinput" name="area_peoples" value="{{item.area_peoples}}" type="text" id="">
+            <label for="">入住率</label>
+            <input class="intinput" name="area_occ_rate" value="{{item.area_occ_rate}}" type="text" id="">
+            <label for="">订单总量</label>
+            <input class="intinput" name="area_totle_orders" value="0" type="text" id="">
+            <label for="">户数</label>
+            <input class="intinput" name="area_house" value="{{item.area_house}}" type="text" id="area_house">
+            <label for="">户均人数</label>
+            <input class="intinput" name="home_peoples" value="{{item.home_peoples}}" type="text">
+            <label for="">门店数量</label>
+            <input class="intinput" name="area_stores" value="{{item.area_stores}}" type="text" id="">
+            <label for="">门店入住率</label>
+            <input class="intinput" name="stores_occ_rate" value="{{item.stores_occ_rate}}" type="text" id="">
+            <label for="">消费频率</label>
+            <input class="intinput" name="area_consumption_rate" value="0" type="text" id="">
+        </div>
+        <div class="box-footer">
+            <button type="submit" class="btn btn-primary">修改</button>
+        </div>
+    </div>
+    </form>
+    {% endfor %}
+
+    <script>
+        // 保存新信息
+        save_info = '{{info}}'
+        if(save_info.length>0){
+            alert(save_info)
+        }
+        var map = new BMapGL.Map('map_box'); // 创建Map实例
+        map.centerAndZoom(new BMapGL.Point(104.072367,30.663615), 12); // 初始化地图,设置中心点坐标和地图级别
+        map.enableScrollWheelZoom(true); // 开启鼠标滚轮缩放
+        //map.setMapType(BMAP_EARTH_MAP);//卫星地图模式
+        map.addEventListener('rightclick', function (e) {
+            copy_zb(document.getElementById('area_x'),document.getElementById('area_y'),e.latlng.lng,e.latlng.lat)
+            alert('点击位置经纬度：' + e.latlng.lng + ',' + e.latlng.lat);
+        });
+    </script>
+    <script>
+        fangjia_list = [
+            {% for item in areas %}
+            {name:'{{item.area_name}}',point:[{{item.area_x}},{{item.area_y}}],price:{{item.area_totle_orders}}+'/'+{{item.area_consumption_rate}}},
+            {% endfor %}
+            ]
+        for(item of fangjia_list){
+            add_fangjia(map,item.point,item.name,'<b style="color:#f99;">'+item.price+'</b>',true)
+        }
+    </script>
+</section>
+{% endblock %}

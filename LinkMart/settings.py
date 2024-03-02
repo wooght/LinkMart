@@ -132,12 +132,13 @@ USE_TZ = False  # 是否django默认时区
 
 # 公共静态文件存放地址（包括原始图片，js,css等静态文件） 及模板中static指向的文件夹
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'businessdata/public_file'),  # 其中一个静态文件夹
+    # os.path.join(BASE_DIR, 'businessdata/public_file'),  # 其中一个静态文件夹
+    os.path.join(BASE_DIR, 'static'),  # 其中一个静态文件夹
 )
 
 # Static files (CSS, JavaScript, Images)
 # 映射到静态文件的URL
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 LOGIN_URL = '/login'  # 登录时 调整到的登录页面

@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% block title %}领克便利数据中心{% endblock %}
+{% block header %}
+{% endblock %}
+{% load common_tags %}
+{% block content_body %}
+<section style="margin:auto; padding-top:10px;" class="content container-fluid">
+    <script src="https://mapopen.bj.bcebos.com/github/BMapGLLib/TrackAnimation/src/TrackAnimation.min.js"></script>
+    <script src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=45EcEdTSLRwAK9HORoMbqHiR2pX6712T"></script>
+    <script src="/static/js/wooght_map.js?v={% wooght_random %}"></script>
+    <div id="map_box" style="overflow:hidden; width:100%; height:800px;">
+
+    </div>
+
+    <form role="form" name="add_store" action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+    <div id="map_form_box">
+        <div class="col-md-6">
+            <div class="box box-info">
+                <h3 class="box-title">基本属性</h3>
+                <div class="inputbox">
+                    <label for="">超市名称：</label>
+                    <input class="border-red" name="store_name" type="text" id="store_name">
+                    <label for="">商圈</label>
+                    <select name="cd_area">
+                        {%for item in areas%}
+                        <option value="{{item.id}}">{{item.area_name}}</option>
+                        {%endfor%}
+                    </select>
+                    <label for="">24H？</label>
+                    <select name="is_24h">
+                        <option value="1">24小时</option>
+                        <option value="0">7-23</option>
+                        <option value="2">7-01</option>
+                    </select>
+                    <label for="">烟草</label>
+                    <select name="is_smoke">
+                        <option value="1">有</option>
+                        <option value="0">无</option>
+                    </select>
+                    <br />
+                    <label for="">坐标X：</label>
+                    <input class="border-blue" name="store_x" type="text" id="area_x">
+                    <label for="">坐标Y：</label>
+                    <input class="border-blue" name="store_y" type="text" id="area_y">
+                </div>
+                <p class="help-block"></p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="box box-info">
+                <h3 class="box-title">踩点数据</h3>
+                <div class="inputbox">
+                    <label for="">单量</label>
+                    <input class="intinput" name="store_orders" type="text" value="0">
+                    <label for="">营业额</label>
+                    <input class="intinput" name="store_turnover" type="text" value="0">
+                    <label for="">对标单量</label>
+                    <input class="intinput" name="contrast_orders" type="text" id=""><br>
+                    <label for="">面积</label>
+                    <input class="intinput" name="store_size" type="text" id="">
+                    <label for="">员工数</label>
+                    <input class="intinput" name="store_waiters" type="text" id="">
+                    <label for="">门头</label>
+                    <input class="intinput" name="door_header" type="text" id="">
+                </div>
+                <p class="help-block"></p>
+            </div>
+        </div>
+        <div class="box-footer">
+            <button type="button" onclick="to_store_update(0)" class="btn btn-primary">提交</button>
+        </div>
+    </div>
+    </form>
+
+
+    <form role="form" name="update_form" action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+    <div id="map_form_box">
+        <div class="col-md-6">
+            <div class="box box-info">
+                <h3 class="box-title">基本属性</h3>
+                <div class="inputbox">
+                    <label for="">选择门店</label>
+                        <select onchange="get_store(this.value)" id="areas">
+                            {%for item in areas%}
+                            <option value="{{item.id}}">{{item.area_name}}</option>
+                            {%endfor%}
+                        </select>
+                        <select onchange="get_one_cd_store(this.value)" name="id" id="cd_store_id">
+
+                        </select>
+                    <br />
+                    <label for="">超市名称：</label>
+                    <input class="border-red" name="store_name" type="text">
+
+                    <select name="cd_area">
+                        {%for area_item in areas%}
+                        <option value="{{area_item.id}}">{{area_item.area_name}}</option>
+                        {%endfor%}
+                    </select>
+                    <label for="">24H</label>
+                    <select name="is_24h">
+                        <option  value="1">24小时</option>
+                        <option  value="0">7-23</option>
+                        <option  value="2">7-01</option>
+                    </select>
+                    <label for="">烟草</label>
+                    <select name="is_smoke">
+                        <option  value="1">有</option>
+                        <option  value="0">无</option>
+                    </select>
+                    <label for="">坐标X：</label>
+                    <input class="border-blue" name="store_x" type="text" id="area_x">
+                    <label for="">坐标Y：</label>
+                    <input class="border-blue" name="store_y" type="text" id="area_y">
+                </div>
+                <p class="help-block"></p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="box box-info">
+                <h3 class="box-title">踩点数据</h3>
+                <div class="inputbox">
+                    <label for="">单量</label>
+                    <input class="intinput" name="store_orders" type="text" value="0">
+                    <label for="">营业额</label>
+                    <input class="intinput" name="store_turnover" type="text" value="0">
+                    <label for="">对标单量</label>
+                    <input class="intinput" name="contrast_orders" type="text" id=""><br>
+                    <label for="">面积</label>
+                    <input class="intinput" name="store_size" type="text" id="">
+                    <label for="">员工数</label>
+                    <input class="intinput" name="store_waiters" type="text" id="">
+                    <label for="">门头</label>
+                    <input class="intinput" name="door_header" type="text" id="">
+                </div>
+                <p class="help-block"></p>
+            </div>
+        </div>
+        <div class="box-footer">
+            <h3 class="box-title">门店标签</h3>
+            {%for label in f_labels.values%}
+                <p>
+                    {%for item in label%}
+                    <label title="{{item.label_notes}}"><i><input type="checkbox" id="{{item.id}}" name="store_label">{{item.label_name}}</i></label>
+                    {%endfor%}
+                </p>
+            {%endfor%}
+        </div>
+        <div class="box-footer">
+            <button type="button" onclick="to_store_update(1)" class="btn btn-primary">修改</button>
+        </div>
+    </div>
+    </form>
+
+    <script>
+        // 根据屏幕宽度调整头部报表展示方式
+        window_width = document.body.clientWidth
+        map_box = document.getElementById("map_box")
+        if(window_width<1000){
+            map_box.style.height = "700px";
+        }
+        // 保存新信息
+        save_info = '{{info}}'
+        if(save_info.length>0){
+            alert(save_info)
+        }
+        // 商圈地址
+        area_xy = {
+        {%for item in areas%}{{item.id}}:[{{item.area_x}},{{item.area_y}}],{%endfor%}0:[104.072367,30.663615]}
+
+        //门店标签
+        all_label = {
+            {%for label in cd_labels%}{{label.id}}:['{{label.label_name}}',{{label.label_score}}],{%endfor%}0:['无',0]}
+
+        // 创建地图
+        var map = new BMapGL.Map('map_box'); // 创建Map实例
+        map.centerAndZoom(new BMapGL.Point(104.072367,30.663615), 12); // 初始化地图,设置中心点坐标和地图级别
+        map.enableScrollWheelZoom(true); // 开启鼠标滚轮缩放
+        //map.setMapType(BMAP_EARTH_MAP);//卫星地图模式
+        map.addEventListener('click', function (e) {
+            if(e.overlay){
+                return;
+            }
+            copy_zb(document.getElementById('area_x'),document.getElementById('area_y'),e.latlng.lng,e.latlng.lat)
+        });
+    </script>
+    <script>
+        // 地图展示
+        map_add_stores(map)
+        //表单部分
+        // 获取门店列表
+        function get_store(id){
+            $.get('get_cd_stores/'+id,function(data){
+                all_data = eval(data)
+                the_select = document.getElementById('cd_store_id')
+                the_select.options.length = 0
+                the_select.options.add(new Option('选择门店', 0))
+                for(key in all_data){
+                    the_option = new Option(all_data[key]['name'],all_data[key]['id'])
+                    the_select.add(the_option)
+                }
+            });
+            map.centerAndZoom(new BMapGL.Point(area_xy[id][0],area_xy[id][1]), 17);
+            del_store_form()
+        }
+        // 清空门店信息
+        function del_store_form(){
+            var form_content = document.update_form
+            for(var i=3;i<form_content.length;i++){
+                form_content[i].value = ''
+            }
+            store_label = document.getElementsByName('store_label')
+            for(i=0;i<store_label.length;i++){
+                store_label[i].checked = false
+            }
+        }
+        // 获取门店信息
+        function get_one_cd_store(id){
+            del_store_form()
+            $.get('get_one_cd_store/'+id,function(data){
+                all_data = eval(data)
+                the_form = document.update_form
+                the_form.store_name.value = all_data['store_name']
+                the_form.cd_area.value = all_data['cd_area']
+                the_form.is_24h.value = all_data['is_24h']
+                the_form.is_smoke.value = all_data['is_smoke']
+                the_form.store_x.value = all_data['store_x']
+                the_form.store_y.value = all_data['store_y']
+                the_form.store_orders.value = all_data['store_orders']
+                the_form.store_turnover.value = all_data['store_turnover']
+                the_form.contrast_orders.value = all_data['contrast_orders']
+                the_form.store_size.value = all_data['store_size']
+                the_form.store_waiters.value = all_data['store_waiters']
+                the_form.door_header.value = all_data['door_header']
+                labels = all_data['cd_label']
+                if(labels){
+                    // 将标签字符串转化为列表
+                    label_list = labels.split(',')
+                    // 获取所有标签选项
+                    store_label = document.getElementsByName('store_label')
+                    for(i=0;i<store_label.length;i++){
+                        if(label_list.indexOf(store_label[i].id)>-1){
+                            store_label[i].checked = true
+                        }else{
+                            store_label[i].checked = ''
+                        }
+                    }
+                }
+            });
+        }
+        //执行门店修改
+        function to_store_update(s){
+            var form = new FormData();
+            // 0为添加 1为修改
+            if(s==0){
+                // 获取表单所有选项
+                var form_content = document.add_store
+                // 获取门店标签复选值
+                store_label = document.getElementsByName('cd_label')
+            }else{
+                var form_content = document.update_form
+                store_label = document.getElementsByName('store_label')
+            }
+
+            for(var i=0;i<form_content.length;i++){
+                if(form_content[i].name){
+                    form.append(form_content[i].name,form_content[i].value)
+                }
+            }
+            // 存放复选框的值
+            checkval = []
+            for(i=0;i<store_label.length;i++){
+                if(store_label[i].checked){
+                    checkval.push(store_label[i].id)
+                }
+            }
+            checklist = checkval.join(',')
+            form.append('cd_label',checklist)
+
+            $.ajax({
+                url:'to_update_store',
+                type:'POST',
+                data:form,
+                processData:false,//不处理数据,
+                contentType:false,//是否传递文件
+                success:function(result){
+                    alert(result)
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    /*弹出jqXHR对象的信息*/
+                    alert(jqXHR.responseText);
+                    alert(jqXHR.status);
+                }
+            })
+            //刷新地图
+            map_add_stores(map)
+        }
+        get_store(document.getElementById('areas').value)
+    </script>
+</section>
+{% endblock %}
